@@ -1,6 +1,9 @@
 from fasthtml.common import *  # noqa: F403
+from dotenv import load_dotenv
 
-app, rt = fast_app()
+load_dotenv()  # Carga las variables del .env
+
+app, rt = fast_app(secret_key=os.environ.get("SESSION_SECRET"))
 
 def navbar():
     return Nav(
