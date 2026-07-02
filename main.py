@@ -170,7 +170,8 @@ def simular_modelo_ia_epen(datos_recibidos: dict) -> dict:
 # 2. VISTAS DEL COMPONENTE FRONTEND SPA
 # =====================================================================
 
-def navbar():
+def navbar(is_transparent=True):
+    navbar_cls = "navbar-fixed-element" if is_transparent else "navbar-fixed-element scrolled"
     return Header(
         Div(
             # Banda institucional gubernamental sutil estilo gob.pe
@@ -187,8 +188,9 @@ def navbar():
                 Div(
                     A(
                         Img(src="/static/imagenes/logo.png", alt="Logo MlingresoPeru", cls="navbar-logo"),
-                        href="#inicio", cls="logo-link"
+                        href="/#inicio", cls="logo-link"
                     ),
+                    Img(src="/static/imagenes/etiqueta.png", alt="Aval Académico", cls="navbar-badge-img"),
                     Div(
                         Div(
                             Span("MI", cls="brand-accent"),
@@ -198,22 +200,31 @@ def navbar():
                         ),
                         cls="brand-logo-group"
                     ),
-                    Img(src="/static/imagenes/etiqueta.png", alt="Aval Académico", cls="navbar-badge-img"),
                     cls="brand-group"
                 ),
+                Button(I(cls="fa-solid fa-bars"), cls="menu-hamburguesa", onclick="toggleMenuMobile()"),
                 Nav(
-                    A(I(cls="fa-solid fa-house"), "Inicio", href="#inicio", cls="menu-link"),
-                    A(I(cls="fa-solid fa-gears"), "Cómo funciona", href="#como-funciona", cls="menu-link"),
-                    A(I(cls="fa-solid fa-book-open"), "Sobre el Proyecto", href="#sobre-proyecto", cls="menu-link"),
-                    A(I(cls="fa-solid fa-calculator"), "Predictor", href="#predictor", cls="menu-link"),
-                    A(I(cls="fa-solid fa-envelope"), "Contacto", href="#contacto", cls="menu-link"),
+                    A(I(cls="fa-solid fa-house"), "Inicio", href="/#inicio", cls="menu-link"),
+                    A(I(cls="fa-solid fa-gears"), "Cómo funciona", href="/#como-funciona", cls="menu-link"),
+                    A(I(cls="fa-solid fa-book-open"), "Sobre el Proyecto", href="/sobre-proyecto", cls="menu-link"),
+                    A(I(cls="fa-solid fa-calculator"), "Predictor", href="/#predictor", cls="menu-link"),
+                    A(I(cls="fa-solid fa-envelope"), "Contacto", href="/#contacto", cls="menu-link"),
                     cls="menu-nav-links"
+                ),
+                Div(
+                    A(I(cls="fa-solid fa-house"), "Inicio", href="/#inicio", cls="menu-mobile-link", onclick="toggleMenuMobile()"),
+                    A(I(cls="fa-solid fa-gears"), "Cómo funciona", href="/#como-funciona", cls="menu-mobile-link", onclick="toggleMenuMobile()"),
+                    A(I(cls="fa-solid fa-book-open"), "Sobre el Proyecto", href="/sobre-proyecto", cls="menu-mobile-link", onclick="toggleMenuMobile()"),
+                    A(I(cls="fa-solid fa-calculator"), "Predictor", href="/#predictor", cls="menu-mobile-link", onclick="toggleMenuMobile()"),
+                    A(I(cls="fa-solid fa-envelope"), "Contacto", href="/#contacto", cls="menu-mobile-link", onclick="toggleMenuMobile()"),
+                    id="menu-mobile-collapse",
+                    cls="menu-mobile-collapse"
                 ),
                 cls="navbar-main-content"
             ),
             cls="navbar-container"
         ),
-        cls="navbar-fixed-element"
+        cls=navbar_cls
     )
 
 def hero():
@@ -279,13 +290,13 @@ def hero():
                     Div(
                         A(I(cls="fa-solid fa-calculator"), "Calcular Salario", href="#predictor", cls="btn-cta-primary"),
                         A(I(cls="fa-solid fa-circle-question"), "Ver Metodología", href="#como-funciona", cls="btn-cta-ghost"),
-                        cls="hero-buttons-wrapper"
+                        cls="hero-buttons-wrapper desktop-only"
                     ),
                     # Badges académicos e institucionales
                     Div(
                         Span(I(cls="fa-solid fa-circle-check"), "Datos de EPEN INEI", cls="hero-badge-item"),
                         Span(I(cls="fa-solid fa-university"), "Investigación URP", cls="hero-badge-item"),
-                        cls="hero-badges-container"
+                        cls="hero-badges-container desktop-only"
                     ),
                     cls="hero-content-overlay"
                 ),
@@ -293,7 +304,21 @@ def hero():
             ),
             id="inicio", cls="hero-section-fullwidth"
         ),
-        # 3. Fila de Métricas Estadísticas (Flota sobre la base del hero)
+        # 3. Bloque de Acción Inferior Móvil (Fondo Oscuro Sólido - Solo visible en móvil)
+        Div(
+            Div(
+                A(I(cls="fa-solid fa-calculator"), "Calcular Salario", href="#predictor", cls="btn-cta-primary"),
+                A(I(cls="fa-solid fa-circle-question"), "Ver Metodología", href="#como-funciona", cls="btn-cta-ghost"),
+                cls="hero-buttons-wrapper-mobile"
+            ),
+            Div(
+                Span(I(cls="fa-solid fa-circle-check"), "Datos de EPEN INEI", cls="hero-badge-item-mobile"),
+                Span(I(cls="fa-solid fa-university"), "Investigación URP", cls="hero-badge-item-mobile"),
+                cls="hero-badges-container-mobile"
+            ),
+            cls="hero-action-block-mobile mobile-only"
+        ),
+        # 4. Fila de Métricas Estadísticas (Flota sobre la base del hero)
         Div(
             # Tarjeta 1: Precisión
             Div(
@@ -713,6 +738,64 @@ def contacto():
 # 3. RUTAS PRINCIPALES DEL SISTEMA
 # =====================================================================
 
+@rt('/sobre-proyecto')
+def get_sobre_proyecto():
+    return Html(
+        Head(
+            Meta(charset="UTF-8"),
+            Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+            Title("Sobre el Proyecto — MiingresoPeru"),
+            Meta(name="description", content="Documentación académica, origen de datos del INEI y modelo predictivo XGBoost del proyecto MiingresoPeru de la Universidad Ricardo Palma."),
+            Link(rel="icon", href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇵🇪</text></svg>"),
+            Link(rel="stylesheet", href="/static/fontawesome/css/all.min.css"),
+            Link(rel="preconnect", href="https://fonts.googleapis.com"),
+            Link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin=""),
+            Link(
+                rel="stylesheet",
+                href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap"
+            ),
+            Link(rel="stylesheet", href="/static/css/style.css"),
+            Script(src="https://unpkg.com/htmx.org@1.9.12")
+        ),
+        Body(
+            navbar(is_transparent=False),
+            # Espaciador en la página para empujar el contenido por debajo del navbar fijo
+            Div(cls="navbar-spacer"),
+            sobre_proyecto(),
+            contacto(),
+            Script("""
+                function toggleMenuMobile() {
+                    const menu = document.getElementById('menu-mobile-collapse');
+                    if (menu) {
+                        menu.classList.toggle('active');
+                    }
+                }
+
+                // Efecto navbar compacto al scrollear
+                window.addEventListener('scroll', () => {
+                    const navbar = document.querySelector('.navbar-fixed-element');
+                    if (window.scrollY > 50) {
+                        navbar.classList.add('scrolled');
+                    }
+                });
+
+                // Intersection Observer para revelar elementos con scroll (se reactivan al volver)
+                const revealElements = document.querySelectorAll('.reveal-on-scroll');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('reveal-active');
+                        } else {
+                            entry.target.classList.remove('reveal-active');
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                revealElements.forEach(el => observer.observe(el));
+            """)
+        )
+    )
+
 @rt('/')
 def get():
     return Html(
@@ -737,14 +820,20 @@ def get():
             Script(src="https://unpkg.com/htmx.org@1.9.12")
         ),
         Body(
-            navbar(),
+            navbar(is_transparent=True),
             hero(),
             como_funciona(),
-            sobre_proyecto(),
             predictor(),
             contacto(),
             # Scripts personalizados para interacciones SPA y micro-animaciones
             Script("""
+                function toggleMenuMobile() {
+                    const menu = document.getElementById('menu-mobile-collapse');
+                    if (menu) {
+                        menu.classList.toggle('active');
+                    }
+                }
+
                 // Scroll suave personalizado
                 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                     anchor.addEventListener('click', function (e) {

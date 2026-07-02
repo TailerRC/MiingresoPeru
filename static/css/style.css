@@ -61,6 +61,8 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -69,6 +71,8 @@ body {
   font-family: var(--font-body);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 a {
@@ -123,6 +127,11 @@ a {
 /* =====================================================================
    BARRA DE NAVEGACIÓN (NAVBAR)
    ===================================================================== */
+.navbar-spacer {
+  height: 110px;
+  background-color: var(--white);
+}
+
 .navbar-fixed-element {
   position: fixed;
   top: 0;
@@ -252,6 +261,23 @@ a {
 
 .navbar-fixed-element.scrolled .brand-subtext {
   color: var(--slate-500);
+}
+
+/* Clases de Utilidad de Visualización */
+.mobile-only {
+  display: none !important;
+}
+
+.desktop-only {
+  display: flex !important;
+}
+
+.menu-hamburguesa {
+  display: none;
+}
+
+.menu-mobile-collapse {
+  display: none;
 }
 
 /* =====================================================================
@@ -1680,23 +1706,13 @@ a {
 }
 
 /* =====================================================================
-   MEDIA QUERIES - DISEÑO RESPONSIVO (Side-by-Side)
+   MEDIA QUERIES - DISEÑO RESPONSIVO UNIFICADO Y AUDITADO AL 100%
    ===================================================================== */
 
 /* Tablets (max-width: 1024px) */
 @media (max-width: 1024px) {
-  .hero-flex-layout {
-    grid-template-columns: 1fr;
-    gap: 3.5rem;
-  }
-
-  .hero-visual-content {
-    justify-content: flex-start;
-  }
-
-  .hero-stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-    max-width: 100%;
+  .sobre-proyecto {
+    padding: 50px 5%;
   }
 
   .steps-horizontal-grid {
@@ -1706,13 +1722,11 @@ a {
 
   .predictor-grid-layout {
     grid-template-columns: 1fr;
-    /* Colapsa side-by-side a bloque */
     gap: 2.5rem;
   }
 
   .predictor-result-column {
     position: static;
-    /* Desactiva sticky en tablets */
   }
 
   .result-box-interactive-panel {
@@ -1728,82 +1742,494 @@ a {
   .footer-col-tech {
     grid-column: span 2;
   }
+
+  .hero-section-fullwidth,
+  .hero-content-wrapper {
+    min-height: 70vh;
+  }
+
+  .hero-content-overlay {
+    max-width: 480px;
+    padding: 20px;
+  }
+
+  .hero-bottom-stats-row {
+    gap: 12px;
+    padding: 0 1rem;
+  }
 }
 
 /* Dispositivos Móviles (max-width: 768px) */
 @media (max-width: 768px) {
+
+  /* ── Seguridad Global Anti-Desborde ─────────────────────────────── */
+  html,
+  body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box !important;
+  }
+
+  .section-container,
+  .sobre-proyecto,
+  .section-grey-background,
+  .section-white-background {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+    box-sizing: border-box !important;
+    max-width: 100vw !important;
+  }
+
+  /* ── 1. NAVBAR MÓVIL (Heurística: Consistencia y Estándares) ── */
   .gov-header-band {
-    display: none;
-    /* Oculta banda superior en móviles */
+    display: none !important;
+  }
+
+  /* Fondo solidamente BLANCO y sombra */
+  .navbar-fixed-element {
+    background-color: #ffffff !important;
+    box-shadow: var(--shadow-md) !important;
+    border-bottom: 1px solid var(--slate-200) !important;
+    position: fixed !important;
+  }
+
+  /* Textos del logo en color oscuro para contraste perfecto */
+  .brand-main {
+    color: var(--slate-900) !important;
+  }
+
+  .brand-country {
+    color: var(--rojo) !important;
   }
 
   .navbar-main-content {
-    padding: 0.65rem 1rem;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0.5rem 15px !important;
+    gap: 0 !important;
+    min-height: 56px !important;
+    position: relative !important;
   }
 
-  .menu-nav-links {
-    display: none;
-    /* Enlaces colapsados */
+  .brand-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .navbar-logo {
+    max-height: 28px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .navbar-badge-img {
+    max-height: 22px !important;
+    flex-shrink: 0 !important;
   }
 
   .brand-logo-text {
-    font-size: 1.25rem;
+    font-size: 1rem !important;
+    white-space: nowrap !important;
   }
 
-  /* Hero fullwidth en móvil - compensar navbar */
+  .brand-subtext {
+    display: none !important;
+  }
+
+  /* Eliminar la fila de iconos sueltos de la derecha */
+  .menu-nav-links {
+    display: none !important;
+  }
+
+  /* Botón hamburguesa nativo */
+  .menu-hamburguesa {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: none !important;
+    font-size: 1.4rem !important;
+    color: var(--slate-900) !important;
+    cursor: pointer !important;
+    padding: 0.5rem !important;
+    transition: var(--transition) !important;
+  }
+
+  .menu-hamburguesa:hover {
+    color: var(--rojo) !important;
+  }
+
+  /* Contenedor colapsable de opciones con nombres textuales (Reconocimiento antes que recuerdo) */
+  .menu-mobile-collapse {
+    display: none;
+    width: 100% !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    background: #ffffff !important;
+    flex-direction: column !important;
+    padding: 15px 20px !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    border-top: 1px solid var(--slate-200) !important;
+    z-index: 999 !important;
+    box-sizing: border-box !important;
+  }
+
+  .menu-mobile-collapse.active {
+    display: flex !important;
+  }
+
+  .menu-mobile-link {
+    font-family: var(--font-display) !important;
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    color: var(--slate-800) !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: var(--radius-sm) !important;
+    transition: var(--transition) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.8rem !important;
+    border-bottom: 1px solid var(--slate-100) !important;
+  }
+
+  .menu-mobile-link:last-child {
+    border-bottom: none !important;
+  }
+
+  .menu-mobile-link:hover {
+    color: var(--rojo) !important;
+    background-color: var(--rojo-light) !important;
+  }
+
+  .navbar-spacer {
+    height: 56px !important;
+  }
+
+  /* ── 2. HERO INTEGRADO EN PARALELO VISUAL (El Carrusel como fondo absoluto) ── */
   .hero-section-fullwidth {
-    padding-top: 0;
+    position: relative !important;
+    width: 100% !important;
+    height: 460px !important; /* Estirado más abajo para visual premium */
+    min-height: 460px !important;
+    overflow: hidden !important;
+    display: block !important;
   }
 
-  .hero-text-content h1 {
-    font-size: 2rem;
+  .hero-slider {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 1 !important;
   }
 
-  .hero-buttons-wrapper {
-    flex-direction: column;
+  /* Velo o capa transparente oscura */
+  .hero-slider::after {
+    content: '' !important;
+    display: block !important;
+    position: absolute !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.65) !important;
+    z-index: 2 !important;
+    pointer-events: none !important;
   }
 
-  .btn-cta-primary,
-  .btn-cta-ghost {
-    width: 100%;
-    justify-content: center;
+  .slide-img {
+    object-fit: cover !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
   }
 
-  .hero-stats-grid {
-    grid-template-columns: 1fr;
+  .hero-content-wrapper {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 3 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    transform: none !important;
+    pointer-events: auto !important;
   }
 
+  /* Súperponer y centrar textos principales */
+  .hero-content-overlay {
+    position: relative !important;
+    z-index: 5 !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 40px 20px 60px 20px !important; /* Incrementado a 60px en la base para evitar solapamientos con los dots */
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .hero-content-overlay h1 {
+    font-family: var(--font-display) !important;
+    font-size: 1.35rem !important;
+    line-height: 1.3 !important;
+    color: #ffffff !important;
+    text-align: center !important;
+    margin-bottom: 10px !important;
+  }
+
+  .hero-content-overlay h1 span.red-gradient-text {
+    color: #ffffff !important;
+    background: none !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  .hero-overlay-desc {
+    font-size: 0.85rem !important;
+    color: #ffffff !important;
+    text-align: center !important;
+    margin-bottom: 0 !important;
+    opacity: 0.9 !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Ocultar flechas de navegación del slider y reposicionar puntos */
+  .slider-btn {
+    display: none !important;
+  }
+
+  .slider-dots {
+    bottom: 15px !important;
+    z-index: 10 !important;
+  }
+
+  /* ── 3. BLOQUE DE ACCIÓN INFERIOR (Fondo Oscuro Sólido) ── */
+  .hero-action-block-mobile {
+    background: #0f172a !important; /* Azul oscuro institucional */
+    padding: 30px 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 20px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  .hero-buttons-wrapper-mobile {
+    display: flex !important;
+    flex-direction: row !important; /* Horizontal 2 columnas */
+    justify-content: space-between !important;
+    gap: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Calcular Salario (rojo institucional) */
+  .hero-buttons-wrapper-mobile .btn-cta-primary {
+    flex: 1 !important; /* Ancho equilibrado */
+    display: inline-flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 10px 14px !important; /* Padding compacto */
+    background: var(--rojo) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: var(--radius-md) !important;
+    font-family: var(--font-display) !important;
+    font-size: 0.9rem !important; /* Fuente reducida */
+    font-weight: 700 !important;
+    transition: var(--transition) !important;
+    box-sizing: border-box !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+  }
+
+  .hero-buttons-wrapper-mobile .btn-cta-primary i {
+    font-size: 0.85rem !important; /* Icono reducido */
+  }
+
+  .hero-buttons-wrapper-mobile .btn-cta-primary:hover {
+    background: var(--rojo-dark) !important;
+  }
+
+  /* Ver Metodología (borde delineado) */
+  .hero-buttons-wrapper-mobile .btn-cta-ghost {
+    flex: 1 !important; /* Ancho equilibrado */
+    display: inline-flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 10px 14px !important; /* Padding compacto */
+    background: transparent !important;
+    color: #ffffff !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: var(--radius-md) !important;
+    font-family: var(--font-display) !important;
+    font-size: 0.9rem !important; /* Fuente reducida */
+    font-weight: 700 !important;
+    transition: var(--transition) !important;
+    box-sizing: border-box !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+  }
+
+  .hero-buttons-wrapper-mobile .btn-cta-ghost i {
+    font-size: 0.85rem !important; /* Icono reducido */
+  }
+
+  .hero-buttons-wrapper-mobile .btn-cta-ghost:hover {
+    border-color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  /* Píldoras de validación horizontal/vertical en la base */
+  .hero-badges-container-mobile {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin-top: 2px !important; /* Margen superior reducido */
+  }
+
+  .hero-badge-item-mobile {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-family: var(--font-display) !important;
+    font-size: 0.75rem !important; /* Reducido */
+    font-weight: 600 !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    padding: 5px 12px !important; /* Padding más compacto */
+    border-radius: 20px !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+
+  /* ── 4. UTILITIES Y OTROS AJUSTES DE DESBORDES ── */
+  .mobile-only {
+    display: block !important;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Estadísticas: columna vertical estática */
+  .hero-bottom-stats-row {
+    flex-direction: column !important;
+    position: static !important;
+    margin: 0 !important;
+    padding: 1.5rem 15px !important;
+    gap: 10px !important;
+    width: 100% !important;
+    background-color: var(--white) !important;
+    z-index: 3 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    box-sizing: border-box !important;
+  }
+
+  .hero-bottom-stats-row .hero-stat-card {
+    flex: none !important;
+    width: 100% !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ── 5. METODOLOGÍA Y DOCUMENTACIÓN ───────────────────────────── */
   .steps-horizontal-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  .about-columns-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+    margin-bottom: 2rem !important;
+  }
+
+  .about-technical-column {
+    padding: 1.5rem !important;
+  }
+
+  .about-authors-block {
+    padding: 1.5rem !important;
+    margin-top: 2rem !important;
+  }
+
+  .about-authors-list {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+
+  .disclaimer-box {
+    margin-top: 2rem !important;
+    padding: 1.25rem !important;
+  }
+
+  /* ── 6. PREDICTOR INTERACTIVO ──────────────────────────────────── */
+  .predictor-grid-layout {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
   }
 
   .predictor-form-column {
-    padding: 1.5rem;
+    padding: 1.5rem !important;
   }
 
   .inputs-grid-layout {
-    grid-template-columns: 1fr;
-    /* Formulario apilado en móvil */
-    gap: 1.25rem;
+    grid-template-columns: 1fr !important;
+    gap: 1.15rem !important;
   }
 
+  .predictor-result-column {
+    position: static !important;
+    width: 100% !important;
+  }
+
+  .result-box-interactive-panel {
+    min-height: auto !important;
+    padding: 2rem 1.25rem !important;
+  }
+
+  /* ── 7. FOOTER ─────────────────────────────────────────────────── */
   .footer-top-grid {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
+    grid-template-columns: 1fr !important;
+    gap: 2.5rem !important;
   }
 
   .footer-col-tech {
-    grid-column: span 1;
+    grid-column: span 1 !important;
   }
 
   .footer-bottom-bar {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: flex-start;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    align-items: flex-start !important;
   }
 }
 
-/* Pantallas extra pequeñas (max-width: 480px) */
+/* Pantallas Extra Pequeñas (max-width: 480px) */
 @media (max-width: 480px) {
   .brand-subtext {
     display: none;
@@ -1844,82 +2270,4 @@ a {
   width: auto;
   opacity: 0.9;
   object-fit: contain;
-}
-
-/* =====================================================================
-   ADAPTACIONES RESPONSIVAS PARA HERO BANNER DE FONDO
-   ===================================================================== */
-@media (max-width: 1024px) {
-
-  .hero-section-fullwidth,
-  .hero-content-wrapper {
-    min-height: 70vh;
-  }
-
-  .hero-content-overlay {
-    max-width: 480px;
-    padding: 30px;
-  }
-
-  .hero-bottom-stats-row {
-    gap: 12px;
-    padding: 0 1rem;
-  }
-}
-
-@media (max-width: 768px) {
-
-  .hero-section-fullwidth,
-  .hero-content-wrapper {
-    min-height: auto;
-    height: auto;
-  }
-
-  .hero-slider {
-    position: relative;
-    height: 250px;
-    width: 100%;
-  }
-
-  /* En móviles el contenido superpuesto se coloca de forma lineal debajo del banner */
-  .hero-content-wrapper {
-    background-color: var(--slate-900);
-    width: 100%;
-    padding: 2.5rem 1.25rem;
-  }
-
-  .hero-content-overlay {
-    max-width: 100%;
-    padding: 0;
-  }
-
-  .hero-content-overlay h1 {
-    font-size: 1.8rem;
-  }
-
-  .hero-content-overlay .hero-buttons-wrapper {
-    flex-direction: column;
-  }
-
-  .hero-content-overlay .hero-buttons-wrapper .btn-cta-primary,
-  .hero-content-overlay .hero-buttons-wrapper .btn-cta-ghost {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .hero-bottom-stats-row {
-    flex-direction: column;
-    margin: 20px auto 0 auto;
-    padding: 0 1.25rem;
-    gap: 10px;
-  }
-
-  .hero-bottom-stats-row .hero-stat-card {
-    flex: none;
-    width: 100%;
-  }
-
-  .slider-btn {
-    display: none;
-  }
 }
