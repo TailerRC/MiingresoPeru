@@ -3,51 +3,56 @@
    ===================================================================== */
 :root {
   /* Paleta Institucional Refinada */
-  --rojo:          #C8102E; /* Rojo Estado Peruano */
-  --rojo-dark:     #9E0A20;
-  --rojo-light:    #FFF1F2;
-  --dorado:        #B8860B; /* Dorado de Escudo */
-  --dorado-dark:   #8B6508;
-  --dorado-light:  #FEF9E7;
-  
+  --rojo: #C8102E;
+  /* Rojo Estado Peruano */
+  --rojo-dark: #9E0A20;
+  --rojo-light: #FFF1F2;
+  --dorado: #B8860B;
+  /* Dorado de Escudo */
+  --dorado-dark: #8B6508;
+  --dorado-light: #FEF9E7;
+
   /* Tonos Neutros Premium */
-  --slate-900:     #0F172A; /* Color Ejecutivo Oscuro */
-  --slate-800:     #1E293B;
-  --slate-700:     #334155;
-  --slate-50:      #F8FAFC;
-  --slate-500:     #64748B;
-  --slate-300:     #CBD5E1;
-  --slate-200:     #E2E8F0;
-  --white:         #FFFFFF;
-  
+  --slate-900: #0F172A;
+  /* Color Ejecutivo Oscuro */
+  --slate-800: #1E293B;
+  --slate-700: #334155;
+  --slate-50: #F8FAFC;
+  --slate-500: #64748B;
+  --slate-300: #CBD5E1;
+  --slate-200: #E2E8F0;
+  --white: #FFFFFF;
+
   /* Colores de Estado Financiero */
-  --emerald-600:   #059669;
-  --emerald-500:   #10B981;
-  --emerald-50:    #ECFDF5;
-  --amber-600:     #D97706;
-  --amber-50:      #FEF3C7;
-  
+  --emerald-600: #059669;
+  --emerald-500: #10B981;
+  --emerald-50: #ECFDF5;
+  --amber-600: #D97706;
+  --amber-50: #FEF3C7;
+
   /* Fuentes */
-  --font-display:  'Outfit', system-ui, -apple-system, sans-serif;
-  --font-body:     'Source Sans 3', system-ui, -apple-system, sans-serif;
-  
+  --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-body: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+
   /* Estructura y Efectos */
-  --radius-lg:     16px;
-  --radius-md:     12px;
-  --radius-sm:     8px;
-  --transition:    0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
   /* Sombras Modernas */
-  --shadow-sm:     0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md:     0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-lg:     0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-  --shadow-xl:     0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
 }
 
 /* =====================================================================
    RESET & ESTILOS BASE
    ===================================================================== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -75,13 +80,16 @@ a {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--slate-50);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--slate-300);
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--slate-500);
 }
@@ -121,7 +129,8 @@ a {
   left: 0;
   right: 0;
   z-index: 1000;
-  background-color: transparent; /* Transparente sobre el hero */
+  background-color: transparent;
+  /* Transparente sobre el hero */
   backdrop-filter: none;
   border-bottom: 1px solid transparent;
   transition: background-color 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
@@ -175,7 +184,8 @@ a {
 }
 
 .brand-main {
-  color: var(--slate-900); /* Overridden below for transparent navbar state */
+  color: var(--slate-900);
+  /* Overridden below for transparent navbar state */
 }
 
 .brand-country {
@@ -194,7 +204,8 @@ a {
   font-family: var(--font-display);
   font-size: 0.88rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.92); /* Blanco sobre el hero */
+  color: rgba(255, 255, 255, 0.92);
+  /* Blanco sobre el hero */
   padding: 0.5rem 0.9rem;
   border-radius: var(--radius-sm);
   transition: var(--transition);
@@ -290,7 +301,8 @@ a {
 .hero-section-fullwidth {
   position: relative;
   width: 100%;
-  min-height: 90vh; /* Aire visual premium */
+  min-height: 90vh;
+  /* Aire visual premium */
   overflow: hidden;
   background-color: var(--slate-900);
 }
@@ -309,18 +321,14 @@ a {
   content: '';
   position: absolute;
   inset: 0;
-  background: 
-    linear-gradient(
-      180deg,
+  background:
+    linear-gradient(180deg,
       rgba(0, 0, 0, 0.85) 0%,
       rgba(0, 0, 0, 0.60) 20%,
-      rgba(0, 0, 0, 0.40) 100%
-    ),
-    linear-gradient(
-      90deg,
+      rgba(0, 0, 0, 0.40) 100%),
+    linear-gradient(90deg,
       rgba(0, 0, 0, 0.80) 0%,
-      rgba(0, 0, 0, 0) 100%
-    );
+      rgba(0, 0, 0, 0) 100%);
   z-index: 2;
   pointer-events: none;
 }
@@ -376,7 +384,8 @@ a {
   align-items: center;
   z-index: 10;
   pointer-events: none;
-  padding-top: 140px; /* Compensación del navbar */
+  padding-top: 140px;
+  /* Compensación del navbar */
   padding-bottom: 80px;
 }
 
@@ -384,7 +393,8 @@ a {
   position: relative;
   max-width: 550px;
   color: #ffffff;
-  pointer-events: auto; /* Reactivar eventos para clicks en botones */
+  pointer-events: auto;
+  /* Reactivar eventos para clicks en botones */
 }
 
 .hero-content-overlay h1 {
@@ -548,7 +558,8 @@ a {
   width: 100%;
   max-width: 1200px;
   margin: -40px auto 0 auto;
-  margin-bottom: -40px; /* Flota sobre la sección siguiente */
+  margin-bottom: -40px;
+  /* Flota sobre la sección siguiente */
   position: relative;
   z-index: 20;
   padding: 0 1.5rem;
@@ -643,7 +654,8 @@ a {
 .step-card-element {
   background-color: var(--white);
   border: 1px solid var(--slate-200);
-  border-top: 4px solid var(--rojo); /* Requisito Técnico: Borde rojo superior */
+  border-top: 4px solid var(--rojo);
+  /* Requisito Técnico: Borde rojo superior */
   border-radius: var(--radius-md);
   padding: 2.25rem 1.75rem;
   box-shadow: var(--shadow-md);
@@ -964,7 +976,8 @@ a {
 /* Layout Grid Lado-a-Lado */
 .predictor-grid-layout {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr; /* Lado-a-Lado */
+  grid-template-columns: 1.2fr 0.8fr;
+  /* Lado-a-Lado */
   gap: 3rem;
   align-items: start;
 }
@@ -1133,8 +1146,17 @@ a {
 }
 
 @keyframes pulseGhost {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.05); opacity: 0.9; }
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
 }
 
 .placeholder-result-title {
@@ -1169,8 +1191,15 @@ a {
 }
 
 @keyframes slideFadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .success-card-header {
@@ -1218,7 +1247,7 @@ a {
 /* Display de Ingreso Salarial */
 .ingreso-display-container {
   padding: 2.25rem 1.5rem;
-  background: radial-gradient(100% 100% at 0% 0%, var(--emerald-50) 0%, rgba(255,255,255,0) 100%);
+  background: radial-gradient(100% 100% at 0% 0%, var(--emerald-50) 0%, rgba(255, 255, 255, 0) 100%);
   border-bottom: 1px solid var(--slate-200);
   text-align: center;
 }
@@ -1409,7 +1438,8 @@ a {
    HTMX SPINNER — Indicador de carga durante la petición
    ===================================================================== */
 .resultado-spinner-wrap {
-  display: none;            /* oculto por defecto */
+  display: none;
+  /* oculto por defecto */
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -1438,7 +1468,9 @@ a {
 }
 
 @keyframes spinRing {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spinner-label {
@@ -1450,8 +1482,15 @@ a {
 }
 
 @keyframes pulseText {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Fix: stat-cards en móvil son visibles siempre (no dependen del IntersectionObserver) */
@@ -1461,6 +1500,7 @@ a {
     transform: none !important;
     transition: none !important;
   }
+
   .section-container {
     padding: 0 1rem;
   }
@@ -1649,11 +1689,11 @@ a {
     grid-template-columns: 1fr;
     gap: 3.5rem;
   }
-  
+
   .hero-visual-content {
     justify-content: flex-start;
   }
-  
+
   .hero-stats-grid {
     grid-template-columns: repeat(3, 1fr);
     max-width: 100%;
@@ -1665,24 +1705,26 @@ a {
   }
 
   .predictor-grid-layout {
-    grid-template-columns: 1fr; /* Colapsa side-by-side a bloque */
+    grid-template-columns: 1fr;
+    /* Colapsa side-by-side a bloque */
     gap: 2.5rem;
   }
 
   .predictor-result-column {
-    position: static; /* Desactiva sticky en tablets */
+    position: static;
+    /* Desactiva sticky en tablets */
   }
 
   .result-box-interactive-panel {
     min-height: auto;
     padding: 2.5rem 1.5rem;
   }
-  
+
   .footer-top-grid {
     grid-template-columns: 1.2fr 0.8fr;
     gap: 3rem;
   }
-  
+
   .footer-col-tech {
     grid-column: span 2;
   }
@@ -1691,7 +1733,8 @@ a {
 /* Dispositivos Móviles (max-width: 768px) */
 @media (max-width: 768px) {
   .gov-header-band {
-    display: none; /* Oculta banda superior en móviles */
+    display: none;
+    /* Oculta banda superior en móviles */
   }
 
   .navbar-main-content {
@@ -1699,7 +1742,8 @@ a {
   }
 
   .menu-nav-links {
-    display: none; /* Enlaces colapsados */
+    display: none;
+    /* Enlaces colapsados */
   }
 
   .brand-logo-text {
@@ -1719,7 +1763,7 @@ a {
     flex-direction: column;
   }
 
-  .btn-cta-primary, 
+  .btn-cta-primary,
   .btn-cta-ghost {
     width: 100%;
     justify-content: center;
@@ -1738,7 +1782,8 @@ a {
   }
 
   .inputs-grid-layout {
-    grid-template-columns: 1fr; /* Formulario apilado en móvil */
+    grid-template-columns: 1fr;
+    /* Formulario apilado en móvil */
     gap: 1.25rem;
   }
 
@@ -1763,7 +1808,7 @@ a {
   .brand-subtext {
     display: none;
   }
-  
+
   .ingreso-value-text {
     font-size: 2.25rem;
   }
@@ -1805,14 +1850,17 @@ a {
    ADAPTACIONES RESPONSIVAS PARA HERO BANNER DE FONDO
    ===================================================================== */
 @media (max-width: 1024px) {
+
   .hero-section-fullwidth,
   .hero-content-wrapper {
     min-height: 70vh;
   }
+
   .hero-content-overlay {
     max-width: 480px;
     padding: 30px;
   }
+
   .hero-bottom-stats-row {
     gap: 12px;
     padding: 0 1rem;
@@ -1820,47 +1868,57 @@ a {
 }
 
 @media (max-width: 768px) {
+
   .hero-section-fullwidth,
   .hero-content-wrapper {
     min-height: auto;
     height: auto;
   }
+
   .hero-slider {
     position: relative;
     height: 250px;
     width: 100%;
   }
+
   /* En móviles el contenido superpuesto se coloca de forma lineal debajo del banner */
   .hero-content-wrapper {
     background-color: var(--slate-900);
     width: 100%;
     padding: 2.5rem 1.25rem;
   }
+
   .hero-content-overlay {
     max-width: 100%;
     padding: 0;
   }
+
   .hero-content-overlay h1 {
     font-size: 1.8rem;
   }
+
   .hero-content-overlay .hero-buttons-wrapper {
     flex-direction: column;
   }
+
   .hero-content-overlay .hero-buttons-wrapper .btn-cta-primary,
   .hero-content-overlay .hero-buttons-wrapper .btn-cta-ghost {
     width: 100%;
     justify-content: center;
   }
+
   .hero-bottom-stats-row {
     flex-direction: column;
     margin: 20px auto 0 auto;
     padding: 0 1.25rem;
     gap: 10px;
   }
+
   .hero-bottom-stats-row .hero-stat-card {
     flex: none;
     width: 100%;
   }
+
   .slider-btn {
     display: none;
   }
