@@ -67,13 +67,11 @@ def simular_modelo_ia_epen(datos_recibidos: dict) -> dict:
     base += base * educ_multipliers.get(c366, 0.65)
 
     # 2. Factor de Experiencia / Edad (c208)
-    # Pico de ingresos en el mercado peruano ronda los 35-50 años.
     if c208 < 18:
         base = base * 0.75
     elif c208 > 65:
         base = base * 0.85
     else:
-        # Incremento sutil por madurez laboral
         base += (c208 - 18) * 35.0
 
     # 3. Factor de Región (region)
@@ -106,8 +104,8 @@ def simular_modelo_ia_epen(datos_recibidos: dict) -> dict:
 
     # 6. Seguro de Salud (seguro1)
     insurance_mods = {
-        '1': 300.0,   # EsSalud (formalidad típica)
-        '2': 600.0,   # Seguro privado (ingresos altos)
+        '1': 300.0,   # EsSalud
+        '2': 600.0,   # Seguro privado
         '3': 700.0,   # Ambos
         '4': 0.0,     # Otro
         '5': -100.0,  # SIS
@@ -115,7 +113,7 @@ def simular_modelo_ia_epen(datos_recibidos: dict) -> dict:
     }
     base += insurance_mods.get(seguro1, 0.0)
 
-    # 7. Horas de Trabajo (whoraT) normalizado a la jornada estándar de 48 horas
+    # 7. Horas de Trabajo (whoraT) normalizado
     hours_ratio = min(max(whoraT / 48.0, 0.25), 1.75)
     base = base * hours_ratio
 
@@ -127,7 +125,7 @@ def simular_modelo_ia_epen(datos_recibidos: dict) -> dict:
     elif c312 == '3':
         base -= 250.0  # Informal
 
-    # Salario estimado redondeado y acotado al rango realista
+    # Salario estimado redondeado y acotado
     salario_final = round(max(base, 1025.0), 2)
 
     # Nivel de formalidad descriptivo
@@ -142,14 +140,18 @@ def simular_modelo_ia_epen(datos_recibidos: dict) -> dict:
     # Percentil del mercado según el salario estimado
     if salario_final < 1400.0:
         percentil_mercado = 'Percentil 30 (Ingreso Básico)'
+        percentil_numero = 30
     elif salario_final < 2800.0:
         percentil_mercado = 'Percentil 55 (Ingreso Promedio)'
+        percentil_numero = 55
     elif salario_final < 5000.0:
         percentil_mercado = 'Top 25% superior'
+        percentil_numero = 75
     else:
         percentil_mercado = 'Top 10% de altos ingresos'
+        percentil_numero = 90
 
-    # Confianza del score simulada (estable pero cambia ligeramente con los inputs)
+    # Confianza del score simulada
     factor_hash = (c366 * 3 + c208 + int(c207) * 7 + int(region) * 11) % 15
     confianza_val = 84.0 + (factor_hash * 0.9)
     confianza_score = f"{round(confianza_val, 1)}%"
@@ -157,8 +159,11 @@ def simular_modelo_ia_epen(datos_recibidos: dict) -> dict:
     return {
         'ingreso_estimado': salario_final,
         'confianza_score': confianza_score,
+        'confianza_numero': round(confianza_val, 1),
         'nivel_formalidad': nivel_formalidad,
-        'percentil_mercado': percentil_mercado
+        'es_formal': c312 in ('1', '2'),
+        'percentil_mercado': percentil_mercado,
+        'percentil_numero': percentil_numero
     }
 
 # =====================================================================
@@ -199,6 +204,7 @@ def navbar():
                 Nav(
                     A(I(cls="fa-solid fa-house"), "Inicio", href="#inicio", cls="menu-link"),
                     A(I(cls="fa-solid fa-gears"), "Cómo funciona", href="#como-funciona", cls="menu-link"),
+                    A(I(cls="fa-solid fa-book-open"), "Sobre el Proyecto", href="#sobre-proyecto", cls="menu-link"),
                     A(I(cls="fa-solid fa-calculator"), "Predictor", href="#predictor", cls="menu-link"),
                     A(I(cls="fa-solid fa-envelope"), "Contacto", href="#contacto", cls="menu-link"),
                     cls="menu-nav-links"
@@ -297,7 +303,7 @@ def hero():
                     Span("87.4%", cls="card-stat-value"),
                     cls="card-stat-texts"
                 ),
-                cls="hero-stat-card card-accent-red"
+                cls="hero-stat-card card-accent-red reveal-on-scroll"
             ),
             # Tarjeta 2: Tamaño Dataset
             Div(
@@ -307,7 +313,7 @@ def hero():
                     Span("120K+ Muestras", cls="card-stat-value"),
                     cls="card-stat-texts"
                 ),
-                cls="hero-stat-card"
+                cls="hero-stat-card reveal-on-scroll"
             ),
             # Tarjeta 3: Algoritmo
             Div(
@@ -317,7 +323,7 @@ def hero():
                     Span("Gradient Boosting", cls="card-stat-value"),
                     cls="card-stat-texts"
                 ),
-                cls="hero-stat-card"
+                cls="hero-stat-card reveal-on-scroll"
             ),
             cls="hero-bottom-stats-row"
         ),
@@ -346,7 +352,7 @@ def como_funciona():
                             ),
                             H3(titulo, cls="step-card-title"),
                             P(descripcion, cls="step-card-desc"),
-                            cls="step-card-element"
+                            cls="step-card-element reveal-on-scroll"
                         )
                         for icono, titulo, descripcion in pasos
                     ],
@@ -357,6 +363,101 @@ def como_funciona():
             cls="section-container"
         ),
         id="como-funciona", cls="section-grey-background"
+    )
+
+def sobre_proyecto():
+    integrantes = [
+        "Chacón Uscamaita, Rodrigo Alessandro",
+        "Carrasco Pariona, Jerzy Ramón",
+        "Espinoza Mathey, Manuel Adriano Valentín",
+        "Vega Dulanto, César Matías Enrique",
+        "Jiménez Rodríguez, Carlos Alonzo"
+    ]
+    return Section(
+        Div(
+            Div(
+                # Encabezado
+                Div(I(cls="fa-solid fa-book-open"), " DOCUMENTACIÓN", cls="badge-about"),
+                H2("La historia detrás de MiingresoPeru", cls="section-main-heading"),
+                P(
+                    "MiingresoPeru nació en las aulas de la Universidad Ricardo Palma como un proyecto académico "
+                    "de la Facultad de Ingeniería. Nuestra misión fue desarrollar un estimador salarial interactivo, "
+                    "capaz de acercar la ciencia de datos y los modelos predictivos al usuario común para orientar "
+                    "de forma transparente sus expectativas laborales.",
+                    cls="about-intro-text"
+                ),
+                
+                # Grid de Columnas Técnicas
+                Div(
+                    # Columna Izquierda: Los Datos
+                    Div(
+                        Div(I(cls="fa-solid fa-database technical-col-icon color-red"), cls="about-icon-container"),
+                        H3("1. Los Datos y el Origen", cls="about-col-title"),
+                        P("La base de conocimiento de nuestro modelo se fundamenta en la Encuesta Permanente de Empleo Nacional (EPEN) provista por el INEI. Aplicamos un riguroso proceso de:", cls="about-col-desc"),
+                        Ul(
+                            Li("Limpieza de registros duplicados e inconsistencias."),
+                            Li("Preprocesamiento y codificación de variables categóricas."),
+                            Li("Filtrado de ingresos atípicos para evitar sesgos."),
+                            cls="about-bullets"
+                        ),
+                        A(
+                            I(cls="fa-solid fa-external-link-alt"), " Visitar INEI Oficial",
+                            href="https://www.inei.gob.pe", target="_blank", cls="btn-link-externo"
+                        ),
+                        cls="about-technical-column reveal-on-scroll"
+                    ),
+                    # Columna Derecha: El Modelo
+                    Div(
+                        Div(I(cls="fa-brands fa-github technical-col-icon"), cls="about-icon-container"),
+                        H3("2. Modelamiento y Desarrollo", cls="about-col-title"),
+                        P("Entrenamos un modelo supervisado usando el algoritmo XGBoost (eXtreme Gradient Boosting) en entornos de Google Colab. El flujo técnico incluyó:", cls="about-col-desc"),
+                        Ul(
+                            Li("Ajuste de hiperparámetros y validación cruzada."),
+                            Li("Optimización del error cuadrático medio (RMSE)."),
+                            Li("Exportación del modelo serializado y despliegue rápido."),
+                            cls="about-bullets"
+                        ),
+                        A(
+                            I(cls="fa-solid fa-external-link-alt"), " Ver Repositorio GitHub",
+                            href="https://github.com/TailerRC/MiingresoPeru", target="_blank", cls="btn-link-externo"
+                        ),
+                        cls="about-technical-column reveal-on-scroll"
+                    ),
+                    cls="about-columns-grid"
+                ),
+                
+                # Bloque de Autores
+                Div(
+                    Div(
+                        I(cls="fa-solid fa-users-gear authors-icon"),
+                        H3("Quiénes lo hicimos posible (Desarrollo y Autoría)"),
+                        cls="about-authors-header"
+                    ),
+                    P("Este proyecto es el resultado del trabajo en equipo y dedicación de los siguientes integrantes:", cls="about-authors-desc"),
+                    Ul(
+                        *[Li(I(cls="fa-solid fa-circle-check bullet-author-icon"), integrante) for integrante in integrantes],
+                        cls="about-authors-list"
+                    ),
+                    cls="about-authors-block reveal-on-scroll"
+                ),
+                
+                # Cierre / Nota Legal
+                Div(
+                    I(cls="fa-solid fa-scale-balanced disclaimer-icon"),
+                    P(
+                        "Nota académica final: Esta plataforma y su algoritmo de predicción salarial han sido "
+                        "diseñados exclusivamente con fines didácticos, de investigación universitaria y demostración de interfaz de usuario. "
+                        "Las proyecciones salariales mostradas son simuladas y no representan compromisos laborales ni estadísticas oficiales vinculantes.",
+                        cls="disclaimer-text"
+                    ),
+                    cls="disclaimer-box reveal-on-scroll"
+                ),
+                
+                cls="section-inner-wrapper"
+            ),
+            cls="section-container"
+        ),
+        id="sobre-proyecto", cls="sobre-proyecto"
     )
 
 def predictor():
@@ -515,14 +616,22 @@ def predictor():
                             hx_post="/calcular-salario",
                             hx_target="#resultado-ia-target",
                             hx_swap="innerHTML",
+                            hx_indicator="#carga-spinner",
                             cls="predictor-form-block"
                         ),
                         cls="predictor-form-column"
                     ),
-                    # Columna de Resultados (Lado Derecho)
+                    # Columna de Resultados (Lado Derecho Sticky)
                     Div(
                         Div(
-                            # Contenedor del placeholder inicial
+                            # Spinner de carga (visible solo durante petición HTMX)
+                            Div(
+                                Div(cls="spinner-ring"),
+                                P("Calculando estimación...", cls="spinner-label"),
+                                id="carga-spinner",
+                                cls="htmx-indicator resultado-spinner-wrap"
+                            ),
+                            # Contenedor del placeholder inicial (reemplazado por HTMX)
                             Div(
                                 I(cls="fa-solid fa-chart-line placeholder-result-icon"),
                                 H3("Esperando Parámetros", cls="placeholder-result-title"),
@@ -534,7 +643,7 @@ def predictor():
                         ),
                         cls="predictor-result-column"
                     ),
-                    cls="predictor-grid-layout"
+                    cls="predictor-grid-layout reveal-on-scroll"
                 ),
                 cls="section-inner-wrapper"
             ),
@@ -631,6 +740,7 @@ def get():
             navbar(),
             hero(),
             como_funciona(),
+            sobre_proyecto(),
             predictor(),
             contacto(),
             # Scripts personalizados para interacciones SPA y micro-animaciones
@@ -662,12 +772,14 @@ def get():
                     }
                 });
 
-                // Intersection Observer para revelar elementos con scroll
-                const revealElements = document.querySelectorAll('.hero-stat-card, .step-card-element, .predictor-grid-layout');
+                // Intersection Observer para revelar elementos con scroll (se reactivan al volver)
+                const revealElements = document.querySelectorAll('.hero-stat-card, .step-card-element, .predictor-grid-layout, .reveal-on-scroll');
                 const observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             entry.target.classList.add('reveal-active');
+                        } else {
+                            entry.target.classList.remove('reveal-active');
                         }
                     });
                 }, { threshold: 0.1 });
@@ -745,14 +857,29 @@ async def post(request):
         # Ejecutar modelo mockup EPEN
         res = simular_modelo_ia_epen(datos_recibidos)
 
+        # Clases dinámicas según formalidad
+        badge_cls = "formalidad-badge badge-formal" if res['es_formal'] else "formalidad-badge badge-informal"
+        badge_icon = "fa-solid fa-circle-check" if res['es_formal'] else "fa-solid fa-circle-xmark"
+
+        # Color dinámico para barra de percentil
+        percentil_n = res['percentil_numero']
+        if percentil_n >= 75:
+            percentil_color = "#10B981"   # verde esmeralda
+        elif percentil_n >= 55:
+            percentil_color = "#F59E0B"   # ámbar
+        else:
+            percentil_color = "#EF4444"   # rojo suave
+
         # Retornar el panel con los resultados procesados con alto nivel visual
         return Div(
-            # Tarjeta de resultado
             Div(
-                # Encabezado
+                # ── Encabezado con icono principal ──
                 Div(
                     Div(
-                        I(cls="fa-solid fa-circle-check success-badge-icon"),
+                        Div(
+                            I(cls="fa-solid fa-money-bill-trend-up"),
+                            cls="success-icon-ring"
+                        ),
                         Div(
                             H3("Estimación Salarial Generada", cls="success-card-title"),
                             P("Basado en el preprocesamiento de la encuesta EPEN del INEI", cls="success-card-subtitle"),
@@ -761,8 +888,8 @@ async def post(request):
                     ),
                     cls="success-card-header"
                 ),
-                
-                # Ingreso Mensual Gigante
+
+                # ── Ingreso Mensual Principal (Gigante) ──
                 Div(
                     Span("INGRESO MENSUAL ESTIMADO (INGTOT)", cls="ingreso-sub-label"),
                     Div(
@@ -770,48 +897,101 @@ async def post(request):
                         Span(f"{res['ingreso_estimado']:,.2f}", cls="ingreso-value-text"),
                         cls="ingreso-display-group"
                     ),
+                    # Insignia de formalidad laboral
+                    Div(
+                        I(cls=badge_icon),
+                        Span(res['nivel_formalidad'], cls="badge-label"),
+                        cls=badge_cls
+                    ),
                     cls="ingreso-display-container"
                 ),
-                
-                # Métricas adicionales
+
+                # ── Métricas Analíticas ──
                 Div(
-                    # Métrica 1: Confianza del cálculo
+                    # Métrica 1: Confianza del Score (con barra de progreso)
                     Div(
                         Div(
-                            Span(I(cls="fa-solid fa-gauge-high"), " Confianza del Score", cls="metric-meta-label"),
-                            Span(res['confianza_score'], cls="metric-meta-value"),
-                            cls="metric-meta-header"
-                        ),
-                        Div(
-                            Div(cls="progress-meter-bar-fill", style=f"width: {res['confianza_score']}"),
-                            cls="progress-meter-bar-track"
+                            Div(
+                                I(cls="fa-solid fa-shield-heart metric-icon"),
+                                cls="metric-icon-wrapper"
+                            ),
+                            Div(
+                                Span("Confianza del Modelo", cls="metric-meta-label"),
+                                Div(
+                                    Span(res['confianza_score'], cls="metric-meta-value"),
+                                    cls="metric-meta-header"
+                                ),
+                                Div(
+                                    Div(
+                                        cls="progress-meter-bar-fill",
+                                        style=f"width: {res['confianza_score']}; background: linear-gradient(90deg, #10B981, #059669);"
+                                    ),
+                                    cls="progress-meter-bar-track"
+                                ),
+                                cls="metric-text-group"
+                            ),
+                            cls="metric-meta-card-inner"
                         ),
                         cls="metric-meta-card"
                     ),
-                    # Métrica 2: Nivel de Formalidad
+                    # Métrica 2: Percentil de Mercado (con barra dinámica)
                     Div(
-                        Span(I(cls="fa-solid fa-building-circle-check"), " Formalidad Laboral", cls="metric-meta-label"),
-                        Span(res['nivel_formalidad'], cls="metric-meta-value-text"),
+                        Div(
+                            Div(
+                                I(cls="fa-solid fa-award metric-icon"),
+                                cls="metric-icon-wrapper"
+                            ),
+                            Div(
+                                Span("Percentil de Mercado", cls="metric-meta-label"),
+                                Div(
+                                    Span(res['percentil_mercado'], cls="metric-meta-value"),
+                                    cls="metric-meta-header"
+                                ),
+                                Div(
+                                    Div(
+                                        cls="progress-meter-bar-fill percentil-bar",
+                                        style=f"width: {percentil_n}%; background: linear-gradient(90deg, {percentil_color}, {percentil_color}cc);"
+                                    ),
+                                    cls="progress-meter-bar-track"
+                                ),
+                                cls="metric-text-group"
+                            ),
+                            cls="metric-meta-card-inner"
+                        ),
                         cls="metric-meta-card"
                     ),
-                    # Métrica 3: Percentil de mercado
+                    # Métrica 3: Formalidad Laboral
                     Div(
-                        Span(I(cls="fa-solid fa-chart-simple"), " Percentil de Mercado", cls="metric-meta-label"),
-                        Span(res['percentil_mercado'], cls="metric-meta-value-text"),
+                        Div(
+                            Div(
+                                I(cls="fa-solid fa-building-shield metric-icon"),
+                                cls="metric-icon-wrapper metric-icon-gold"
+                            ),
+                            Div(
+                                Span("Régimen Laboral", cls="metric-meta-label"),
+                                Div(
+                                    Span(res['nivel_formalidad'], cls="metric-meta-value-text"),
+                                    cls="metric-meta-header"
+                                ),
+                                cls="metric-text-group"
+                            ),
+                            cls="metric-meta-card-inner"
+                        ),
                         cls="metric-meta-card"
                     ),
                     cls="metrics-dashboard-grid"
                 ),
-                
-                # Footer de la tarjeta con aclaración del proyecto
+
+                # ── Footer Académico ──
                 Div(
                     I(cls="fa-solid fa-graduation-cap URP-badge-icon"),
-                    P("Proyecto de Inteligencia Artificial - Universidad Ricardo Palma (Facultad de Ingeniería)", cls="academic-reference-text"),
+                    P("Proyecto de Inteligencia Artificial — Universidad Ricardo Palma (Facultad de Ingeniería)", cls="academic-reference-text"),
                     cls="success-card-footer"
                 ),
                 cls="resultado-card-wrap animate-fade-in"
             )
         )
+
     except Exception as e:
         # En caso de error inesperado
         return Div(
