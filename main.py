@@ -1,10 +1,34 @@
 from fasthtml.common import *  # noqa: F403
 from dotenv import load_dotenv
 import os
+import json
+import xgboost as xgb
+import pandas as pd
 
 load_dotenv()
 
 app, rt = fast_app(secret_key=os.environ.get("SESSION_SECRET"))
+
+# --- Carga del modelo (una sola vez, al iniciar la app) ---
+modelo = xgb.XGBRegressor()
+modelo.load_model("models/modelo_ingresos.json")
+
+with open("models/columnas_modelo.json") as f:
+    columnas_modelo = json.load(f)
+
+# --- Valores por defecto para las 16 variables ocultas ---
+defaults = {
+    "REGION": 1, "ESTRATO": 5, "C205": 2, "C311": 5, "C359": 1,
+    "C361_1": 1, "C361_5": 2, "C364_1": 2,
+    "C375_1": 2, "C375_2": 2, "C375_3": 2, "C375_4": 2, "C375_5": 2, "C375_6": 2,
+    "C376": 10, "C377": 7,
+}
+
+def predecir_ingreso(formulario: dict) -> tuple[float, float, float]:
+    entrada = {**defaults, **formulario}
+    fila = pd.DataFrame([[entrada[col] for col in columnas_modelo]], columns=columnas_modelo)
+    prediccion = float(modelo.predict(fila)[0])
+    return prediccion, prediccion * 0.85, prediccion * 1.15
 
 def navbar():
     return Nav(
@@ -145,75 +169,137 @@ def predictor():
     return Section(
         Div(
             Span(I(cls="fa-solid fa-calculator"), " Predictor", cls="eyebrow"),
-            H2("Calcula tu ingreso estimado"),
+            H2("Simula tu ingreso potencial"),
             # Aviso institucional
             Div(
                 I(cls="fa-solid fa-circle-info"),
-                " Estimación basada en datos ENAHO del INEI. Solo con fines académicos e informativos.",
+                " Proyección basada en datos EPEN del INEI sobre personas con perfil similar. No representa un ingreso garantizado.",
                 cls="aviso-info"
             ),
-            Div(
+            Form(
                 Div(
+                    # Nivel educativo — C366
                     Div(
                         Label(I(cls="fa-solid fa-user-graduate"), " Nivel educativo", For="educacion"),
                         Select(
                             Option("Selecciona...", value="", disabled=True, selected=True),
-                            Option("Sin instrucción", value="0"),
-                            Option("Primaria", value="1"),
-                            Option("Secundaria", value="2"),
-                            Option("Técnico", value="3"),
-                            Option("Universitario", value="4"),
-                            Option("Postgrado", value="5"),
-                            id="educacion", name="educacion"
+                            Option("Sin nivel", value="1"),
+                            Option("Educación Inicial", value="2"),
+                            Option("Primaria incompleta", value="3"),
+                            Option("Primaria completa", value="4"),
+                            Option("Secundaria incompleta", value="5"),
+                            Option("Secundaria completa", value="6"),
+                            Option("Básica especial", value="7"),
+                            Option("Superior no universitaria incompleta", value="8"),
+                            Option("Superior no universitaria completa", value="9"),
+                            Option("Superior universitaria incompleta", value="10"),
+                            Option("Superior universitaria completa", value="11"),
+                            Option("Maestría/Doctorado", value="12"),
+                            id="educacion", name="educacion", required=True
                         ),
                         cls="field"
                     ),
+                    # Edad — C208
                     Div(
-                        Label(I(cls="fa-solid fa-briefcase"), " Sector laboral", For="sector"),
-                        Select(
-                            Option("Selecciona...", value="", disabled=True, selected=True),
-                            Option("Agricultura", value="agri"),
-                            Option("Comercio", value="comercio"),
-                            Option("Construcción", value="construccion"),
-                            Option("Educación", value="educacion"),
-                            Option("Salud", value="salud"),
-                            Option("Tecnología", value="tech"),
-                            Option("Manufactura", value="manufactura"),
-                            id="sector", name="sector"
-                        ),
+                        Label(I(cls="fa-solid fa-calendar-day"), " Edad", For="edad"),
+                        Input(type="number", id="edad", name="edad", placeholder="Ej: 28", min="14", max="98", required=True),
                         cls="field"
                     ),
-                    Div(
-                        Label(I(cls="fa-solid fa-clock"), " Años de experiencia", For="experiencia"),
-                        Input(type="number", id="experiencia", name="experiencia", placeholder="Ej: 5", min="0", max="50"),
-                        cls="field"
-                    ),
-                    Div(
-                        Label(I(cls="fa-solid fa-map-location-dot"), " Región", For="region"),
-                        Select(
-                            Option("Selecciona...", value="", disabled=True, selected=True),
-                            Option("Lima", value="lima"),
-                            Option("Arequipa", value="arequipa"),
-                            Option("La Libertad", value="la_libertad"),
-                            Option("Cusco", value="cusco"),
-                            Option("Piura", value="piura"),
-                            Option("Otro", value="otro"),
-                            id="region", name="region"
-                        ),
-                        cls="field"
-                    ),
-                    Div(
-                        Label(I(cls="fa-solid fa-calendar-week"), " Horas semanales", For="horas"),
-                        Input(type="number", id="horas", name="horas", placeholder="Ej: 40", min="1", max="80"),
-                        cls="field"
-                    ),
+                    # Sexo — C207
                     Div(
                         Label(I(cls="fa-solid fa-venus-mars"), " Sexo", For="sexo"),
                         Select(
                             Option("Selecciona...", value="", disabled=True, selected=True),
-                            Option("Masculino", value="1"),
-                            Option("Femenino", value="0"),
-                            id="sexo", name="sexo"
+                            Option("Hombre", value="1"),
+                            Option("Mujer", value="2"),
+                            id="sexo", name="sexo", required=True
+                        ),
+                        cls="field"
+                    ),
+                    # Región — REGION
+                    Div(
+                        Label(I(cls="fa-solid fa-map-location-dot"), " ¿En qué región buscas trabajo?", For="region"),
+                        Select(
+                            Option("Selecciona...", value="", disabled=True, selected=True),
+                            Option("Lima Metropolitana", value="1"),
+                            Option("Resto urbano", value="2"),
+                            Option("Rural", value="3"),
+                            id="region", name="region", required=True
+                        ),
+                        cls="field"
+                    ),
+                    # Tipo de trabajo — C310
+                    Div(
+                        Label(I(cls="fa-solid fa-briefcase"), " ¿Qué tipo de trabajo buscas?", For="trabajo"),
+                        Select(
+                            Option("Selecciona...", value="", disabled=True, selected=True),
+                            Option("Empleador o patrono", value="1"),
+                            Option("Trabajador independiente", value="2"),
+                            Option("Empleado u obrero", value="3"),
+                            Option("Trabajador del hogar", value="6"),
+                            Option("Aprendiz/practicante remunerado", value="7"),
+                            id="trabajo", name="trabajo", required=True
+                        ),
+                        cls="field"
+                    ),
+                    # Tamaño de empresa — C317
+                    Div(
+                        Label(I(cls="fa-solid fa-building"), " ¿En qué tamaño de empresa te gustaría trabajar?", For="empresa"),
+                        Select(
+                            Option("Selecciona...", value="", disabled=True, selected=True),
+                            Option("Hasta 20 personas", value="1"),
+                            Option("De 21 a 50 personas", value="2"),
+                            Option("De 51 a 100 personas", value="3"),
+                            Option("De 101 a 500 personas", value="4"),
+                            Option("Más de 500 personas", value="5"),
+                            id="empresa", name="empresa", required=True
+                        ),
+                        cls="field"
+                    ),
+                    # Formalidad — C312
+                    Div(
+                        Label(I(cls="fa-solid fa-file-contract"), " ¿Te interesa que sea formal (con RUC/planilla)?", For="formalidad"),
+                        Select(
+                            Option("Selecciona...", value="", disabled=True, selected=True),
+                            Option("Sí, persona jurídica (SAC, SRL, EIRL...)", value="1"),
+                            Option("Sí, persona natural con RUC", value="2"),
+                            Option("No, prefiero informal", value="3"),
+                            Option("No sabe / me es indiferente", value="4"),
+                            id="formalidad", name="formalidad", required=True
+                        ),
+                        cls="field"
+                    ),
+                    # Seguro de salud — SEGURO1
+                    Div(
+                        Label(I(cls="fa-solid fa-notes-medical"), " ¿A qué seguro de salud te gustaría acceder?", For="seguro"),
+                        Select(
+                            Option("Selecciona...", value="", disabled=True, selected=True),
+                            Option("EsSalud", value="1"),
+                            Option("Seguro privado de salud", value="2"),
+                            Option("Ambos", value="3"),
+                            Option("Otro", value="4"),
+                            Option("Seguro Integral de Salud (SIS)", value="5"),
+                            Option("No afiliado", value="6"),
+                            id="seguro", name="seguro", required=True
+                        ),
+                        cls="field"
+                    ),
+                    # Horas semanales — C318_T / whoraT
+                    Div(
+                        Label(I(cls="fa-solid fa-calendar-week"), " ¿Cuántas horas a la semana planeas trabajar?", For="horas"),
+                        Input(type="number", id="horas", name="horas", placeholder="Ej: 40", min="1", max="80", required=True),
+                        cls="field"
+                    ),
+                    # Frecuencia de pago — C338
+                    Div(
+                        Label(I(cls="fa-solid fa-money-bill-wave"), " ¿Cómo prefieres que te paguen?", For="pago"),
+                        Select(
+                            Option("Selecciona...", value="", disabled=True, selected=True),
+                            Option("Diario", value="1"),
+                            Option("Semanal", value="2"),
+                            Option("Quincenal", value="3"),
+                            Option("Mensual", value="4"),
+                            id="pago", name="pago", required=True
                         ),
                         cls="field"
                     ),
@@ -221,18 +307,18 @@ def predictor():
                 ),
                 Button(
                     I(cls="fa-solid fa-magnifying-glass-chart"),
-                    Span(" Predecir ingreso"),
+                    Span(" Simular ingreso"),
                     cls="btn-primary btn-full",
-                    hx_post="/predecir",
-                    hx_include="closest div",
-                    hx_target="#resultado",
-                    hx_swap="innerHTML"
+                    type="submit"
                 ),
                 Div(
-                    P(I(cls="fa-solid fa-arrow-up-from-bracket"), " Completa el formulario y presiona el botón para ver tu estimación.", cls="resultado-placeholder"),
+                    P(I(cls="fa-solid fa-arrow-up-from-bracket"), " Completa el formulario y presiona el botón para ver tu proyección.", cls="resultado-placeholder"),
                     id="resultado", cls="resultado-box"
                 ),
-                cls="form-wrapper"
+                hx_post="/predecir",
+                hx_target="#resultado",
+                hx_swap="innerHTML",
+                cls="form-wrapper", id="predictor-form"
             ),
             cls="section-inner"
         ),
@@ -268,6 +354,7 @@ def get():
             Meta(charset="UTF-8"),
             Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
             Title("MiingresoPeru — Predice tu ingreso con IA"),
+            Script(src="https://unpkg.com/htmx.org@1.9.12"), 
             Link(rel='stylesheet', href='/static/fontawesome/css/all.min.css'),
             Link(rel='preconnect', href='https://fonts.googleapis.com'),
             Link(rel='preconnect', href='https://fonts.gstatic.com', crossorigin=''),
@@ -303,28 +390,50 @@ def get():
     )
 
 @rt('/predecir')
-async def post(educacion: str = "", sector: str = "", experiencia: str = "0",
-               region: str = "", horas: str = "40", sexo: str = "1"):
+async def post(educacion: str = "", edad: str = "", sexo: str = "", region: str = "",
+                trabajo: str = "", empresa: str = "", formalidad: str = "",
+                seguro: str = "", horas: str = "40", pago: str = ""):
+    print("=" * 50)
+    print("DATOS RECIBIDOS DEL FORMULARIO:")
+    print(f"educacion={educacion!r}, edad={edad!r}, sexo={sexo!r}, region={region!r}")
+    print(f"trabajo={trabajo!r}, empresa={empresa!r}, formalidad={formalidad!r}")
+    print(f"seguro={seguro!r}, horas={horas!r}, pago={pago!r}")
+
     try:
-        exp = int(experiencia)
-        edu_val = int(educacion) if educacion else 0
-        base = 950 + (edu_val * 400) + (exp * 80)
-        rango_min = int(base * 0.85)
-        rango_max = int(base * 1.15)
+        formulario = {
+            "C366": int(educacion),
+            "C208": int(edad),
+            "C207": int(sexo),
+            "REGION": int(region),
+            "C310": int(trabajo),
+            "C317": int(empresa),
+            "C312": int(formalidad),
+            "SEGURO1": int(seguro),
+            "C318_T": int(horas),
+            "whoraT": int(horas),
+            "C338": int(pago),
+        }
+        print(f"Vector armado: {formulario}")
+
+        prediccion, rango_min, rango_max = predecir_ingreso(formulario)
+        print(f"✅ Predicción exitosa: S/ {prediccion:,.2f} (rango {rango_min:,.0f}-{rango_max:,.0f})")
+
         return Div(
             Div(
                 I(cls="fa-solid fa-circle-check res-icon"),
                 Div(
                     P("Ingreso mensual estimado", cls="res-label"),
-                    P(f"S/ {rango_min:,} — S/ {rango_max:,}", cls="res-value"),
+                    P(f"S/ {rango_min:,.0f} — S/ {rango_max:,.0f}", cls="res-value"),
                     cls="res-data"
                 ),
                 cls="res-main"
             ),
-            P(I(cls="fa-solid fa-triangle-exclamation"), " Estimación preliminar · El modelo real se conectará a Google Colab.", cls="res-note"),
+            P(I(cls="fa-solid fa-triangle-exclamation"), " Proyección basada en datos EPEN del INEI. No representa un ingreso garantizado.", cls="res-note"),
             cls="resultado-content"
         )
-    except:
+    except (ValueError, KeyError) as e:
+        print(f"❌ ERROR: {type(e).__name__}: {e}")
         return P(I(cls="fa-solid fa-circle-xmark"), " Completa todos los campos para obtener tu estimación.", cls="res-error")
-
-serve()
+    
+if __name__ == "__main__":
+    serve()
