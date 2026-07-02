@@ -1035,4 +1035,5 @@ async def post(request):
         )
 
 # Ejecución del servidor FastHTML
-serve()
+if __name__ == "__main__":
+    serve()
