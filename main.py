@@ -8,6 +8,7 @@ import pandas as pd
 load_dotenv()
 
 app, rt = fast_app(secret_key=os.environ.get("SESSION_SECRET"))
+app = app
 
 # --- Carga del modelo (una sola vez, al iniciar la app) ---
 modelo = xgb.XGBRegressor()
