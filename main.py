@@ -1,9 +1,4 @@
-# =====================================================================
-# PROYECTO ACADÉMICO: MIINGRESOPERU (UNIVERSIDAD RICARDO PALMA)
-# Estimador Salarial basado en la Encuesta Permanente de Empleo (EPEN)
-# =====================================================================
-
-from fasthtml.common import *  # noqa: F403
+from fasthtml.common import *
 from dotenv import load_dotenv
 import os
 import json
@@ -11,18 +6,16 @@ import xgboost as xgb
 import pandas as pd
 
 load_dotenv()
-
-# Inicialización de FastHTML - pico=False previene conflictos con nuestros estilos custom.css
 app, rt = fast_app(pico=False, secret_key=os.environ.get("SESSION_SECRET", "mi_secreto_seguro_urp_2026"))
 
-# --- Carga del modelo real (una sola vez, al iniciar la app) ---
+# Carga del modelo real
 modelo = xgb.XGBRegressor()
 modelo.load_model("models/modelo_ingresos.json")
 
 with open("models/columnas_modelo.json") as f:
     columnas_modelo = json.load(f)
 
-# --- Valores por defecto para las 16 variables ocultas (no visibles en el form) ---
+# Valores por defecto para las 16 variables ocultas (no visibles en el form)
 defaults_ocultos = {
     "REGION": 1, "ESTRATO": 5, "C205": 2, "C311": 5, "C359": 1,
     "C361_1": 1, "C361_5": 2, "C364_1": 2,
@@ -31,11 +24,7 @@ defaults_ocultos = {
 }
 
 def predecir_ingreso_real(datos_recibidos: dict) -> dict:
-    """
-    Predicción real usando el modelo XGBoost entrenado con datos EPEN (INEI).
-    Recibe el dict crudo del formulario (strings) y devuelve la misma
-    estructura que antes usaba la simulación, para no romper el HTML.
-    """
+   # Predicción real usando el modelo XGBoost entrenado con datos EPEN.
     # 1. Parsear inputs del formulario (mismos nombres que ya usa el HTML)
     try:
         c366 = int(datos_recibidos.get('c366', 6))
@@ -110,16 +99,10 @@ def predecir_ingreso_real(datos_recibidos: dict) -> dict:
         'percentil_numero': percentil_numero
     }
 
-
-# =====================================================================
-# 2. VISTAS DEL COMPONENTE FRONTEND SPA
-# =====================================================================
-
 def navbar(is_transparent=True):
     navbar_cls = "navbar-fixed-element" if is_transparent else "navbar-fixed-element scrolled"
     return Header(
         Div(
-            # Banda institucional gubernamental sutil estilo gob.pe
             Div(
                 Div(
                     I(cls="fa-solid fa-landmark"),
@@ -128,7 +111,6 @@ def navbar(is_transparent=True):
                 ),
                 cls="gov-header-band"
             ),
-            # Navbar Principal
             Div(
                 Div(
                     A(
@@ -175,29 +157,23 @@ def navbar(is_transparent=True):
 def hero():
     return Div(
         Section(
-            # 1. Slider de Fondo (Ancho y Alto Completo)
             Div(
-                # Contenedor de slides
                 Div(
-                    # Slide 1
                     Div(
                         Img(src="/static/imagenes/slide1.jpg", alt="Slide 1", cls="slide-img"),
                         Div("Análisis EPEN 2025", cls="slide-caption"),
                         cls="slide active"
                     ),
-                    # Slide 2
                     Div(
                         Img(src="/static/imagenes/slide2.jpg", alt="Slide 2", cls="slide-img"),
                         Div("Algoritmos de Gradient Boosting", cls="slide-caption"),
                         cls="slide"
                     ),
-                    # Slide 3
                     Div(
                         Img(src="/static/imagenes/slide3.jpg", alt="Slide 3", cls="slide-img"),
                         Div("Investigación Académica URP", cls="slide-caption"),
                         cls="slide"
                     ),
-                    # Slide 4
                     Div(
                         Img(src="/static/imagenes/slide4.jpg", alt="Slide 4", cls="slide-img"),
                         Div("Campus URP", cls="slide-caption"),
@@ -205,10 +181,8 @@ def hero():
                     ),
                     cls="slides-wrapper"
                 ),
-                # Controles de navegación
                 Button(I(cls="fa-solid fa-chevron-left"), cls="slider-btn prev"),
                 Button(I(cls="fa-solid fa-chevron-right"), cls="slider-btn next"),
-                # Puntos indicadores
                 Div(
                     Span(cls="dot active"),
                     Span(cls="dot"),
@@ -218,7 +192,6 @@ def hero():
                 ),
                 cls="hero-slider"
             ),
-            # 2. Capa de Contenido Superpuesto (Texto y Botones a la izquierda)
             Div(
                 Div(
                     Span( "", cls="hero-overlay-eyebrow"),
@@ -237,7 +210,6 @@ def hero():
                         A(I(cls="fa-solid fa-circle-question"), "Ver Metodología", href="#como-funciona", cls="btn-cta-ghost"),
                         cls="hero-buttons-wrapper desktop-only"
                     ),
-                    # Badges académicos e institucionales
                     Div(
                         Span(I(cls="fa-solid fa-circle-check"), "Datos de EPEN INEI", cls="hero-badge-item"),
                         Span(I(cls="fa-solid fa-university"), "Investigación URP", cls="hero-badge-item"),
@@ -249,7 +221,6 @@ def hero():
             ),
             id="inicio", cls="hero-section-fullwidth"
         ),
-        # 3. Bloque de Acción Inferior Móvil (Fondo Oscuro Sólido - Solo visible en móvil)
         Div(
             Div(
                 A(I(cls="fa-solid fa-calculator"), "Calcular Salario", href="#predictor", cls="btn-cta-primary"),
@@ -263,9 +234,7 @@ def hero():
             ),
             cls="hero-action-block-mobile mobile-only"
         ),
-        # 4. Fila de Métricas Estadísticas (Flota sobre la base del hero)
         Div(
-            # Tarjeta 1: Precisión
             Div(
                 I(cls="fa-solid fa-bullseye card-stat-icon"),
                 Div(
@@ -275,7 +244,6 @@ def hero():
                 ),
                 cls="hero-stat-card card-accent-red reveal-on-scroll"
             ),
-            # Tarjeta 2: Tamaño Dataset
             Div(
                 I(cls="fa-solid fa-database card-stat-icon"),
                 Div(
@@ -285,7 +253,6 @@ def hero():
                 ),
                 cls="hero-stat-card reveal-on-scroll"
             ),
-            # Tarjeta 3: Algoritmo
             Div(
                 I(cls="fa-solid fa-brain card-stat-icon"),
                 Div(
@@ -346,7 +313,6 @@ def sobre_proyecto():
     return Section(
         Div(
             Div(
-                # Encabezado
                 Div(I(cls="fa-solid fa-book-open"), " DOCUMENTACIÓN", cls="badge-about"),
                 H2("La historia detrás de MiingresoPeru", cls="section-main-heading"),
                 P(
@@ -357,9 +323,7 @@ def sobre_proyecto():
                     cls="about-intro-text"
                 ),
                 
-                # Grid de Columnas Técnicas
                 Div(
-                    # Columna Izquierda: Los Datos
                     Div(
                         Div(I(cls="fa-solid fa-database technical-col-icon color-red"), cls="about-icon-container"),
                         H3("1. Los Datos y el Origen", cls="about-col-title"),
@@ -376,7 +340,6 @@ def sobre_proyecto():
                         ),
                         cls="about-technical-column reveal-on-scroll"
                     ),
-                    # Columna Derecha: El Modelo
                     Div(
                         Div(I(cls="fa-brands fa-github technical-col-icon"), cls="about-icon-container"),
                         H3("2. Modelamiento y Desarrollo", cls="about-col-title"),
@@ -396,7 +359,6 @@ def sobre_proyecto():
                     cls="about-columns-grid"
                 ),
                 
-                # Bloque de Autores
                 Div(
                     Div(
                         I(cls="fa-solid fa-users-gear authors-icon"),
@@ -411,7 +373,6 @@ def sobre_proyecto():
                     cls="about-authors-block reveal-on-scroll"
                 ),
                 
-                # Cierre / Nota Legal
                 Div(
                     I(cls="fa-solid fa-scale-balanced disclaimer-icon"),
                     P(
@@ -436,21 +397,16 @@ def predictor():
             Div(
                 Span(I(cls="fa-solid fa-calculator"), " PROYECCIÓN SALARIAL", cls="section-eyebrow"),
                 H2("Calculadora de Ingreso Estimado", cls="section-main-heading"),
-                
-                # Panel informativo
                 Div(
                     I(cls="fa-solid fa-triangle-exclamation warning-icon"),
                     P("El modelo actual utiliza datos del preprocesamiento EPEN del INEI. Las estimaciones son simuladas con fines académicos y de desarrollo de la interfaz de usuario.", cls="warning-text"),
                     cls="warning-banner-container"
                 ),
                 
-                # Grid Side-by-Side (Lado a Lado)
                 Div(
-                    # Columna de Formulario
                     Div(
                         Form(
                             Div(
-                                # 1. Nivel Educativo
                                 Div(
                                     Label(I(cls="fa-solid fa-graduation-cap label-icon"), " Nivel Educativo (c366)", For="c366"),
                                     Select(
@@ -471,13 +427,11 @@ def predictor():
                                     ),
                                     cls="form-group-field"
                                 ),
-                                # 2. Edad
                                 Div(
                                     Label(I(cls="fa-solid fa-cake-candles label-icon"), " ¿Cuántos años tienes? (c208)", For="c208"),
                                     Input(type="number", id="c208", name="c208", placeholder="Ej: 25", min="14", max="100", required=True),
                                     cls="form-group-field"
                                 ),
-                                # 3. Sexo
                                 Div(
                                     Label(I(cls="fa-solid fa-venus-mars label-icon"), " Sexo (c207)", For="c207"),
                                     Select(
@@ -488,7 +442,6 @@ def predictor():
                                     ),
                                     cls="form-group-field"
                                 ),
-                                # 4. Región
                                 Div(
                                     Label(I(cls="fa-solid fa-earth-americas label-icon"), " ¿En qué región buscas trabajo? (region)", For="region"),
                                     Select(
@@ -500,7 +453,6 @@ def predictor():
                                     ),
                                     cls="form-group-field"
                                 ),
-                                # 5. Tipo de trabajo
                                 Div(
                                     Label(I(cls="fa-solid fa-network-wired label-icon"), " Tipo de trabajo al que aspiras (c310)", For="c310"),
                                     Select(
@@ -514,7 +466,6 @@ def predictor():
                                     ),
                                     cls="form-group-field"
                                 ),
-                                # 6. Tamaño de empresa
                                 Div(
                                     Label(I(cls="fa-solid fa-users label-icon"), " Tamaño de empresa esperado (c317)", For="c317"),
                                     Select(
@@ -528,7 +479,6 @@ def predictor():
                                     ),
                                     cls="form-group-field"
                                 ),
-                                # 7. ¿Buscas negocio formal?
                                 Div(
                                     Label(I(cls="fa-solid fa-building-shield label-icon"), " ¿Buscas negocio/empleo formal? (c312)", For="c312"),
                                     Select(
@@ -541,7 +491,6 @@ def predictor():
                                     ),
                                     cls="form-group-field"
                                 ),
-                                # 8. Seguro de salud
                                 Div(
                                     Label(I(cls="fa-solid fa-hand-holding-heart label-icon"), " Seguro de salud esperado (seguro1)", For="seguro1"),
                                     Select(
@@ -556,13 +505,11 @@ def predictor():
                                     ),
                                     cls="form-group-field"
                                 ),
-                                # 9. Horas semanales
                                 Div(
                                     Label(I(cls="fa-solid fa-hourglass-half label-icon"), " ¿Horas semanales planeadas? (whoraT)", For="whoraT"),
                                     Input(type="number", id="whoraT", name="whoraT", placeholder="Ej: 48", min="1", max="120", required=True),
                                     cls="form-group-field"
                                 ),
-                                # 10. Frecuencia de pago
                                 Div(
                                     Label(I(cls="fa-solid fa-money-check-dollar label-icon"), " Frecuencia de pago esperada (c338)", For="c338"),
                                     Select(
@@ -591,17 +538,14 @@ def predictor():
                         ),
                         cls="predictor-form-column"
                     ),
-                    # Columna de Resultados (Lado Derecho Sticky)
                     Div(
                         Div(
-                            # Spinner de carga (visible solo durante petición HTMX)
                             Div(
                                 Div(cls="spinner-ring"),
                                 P("Calculando estimación...", cls="spinner-label"),
                                 id="carga-spinner",
                                 cls="htmx-indicator resultado-spinner-wrap"
                             ),
-                            # Contenedor del placeholder inicial (reemplazado por HTMX)
                             Div(
                                 I(cls="fa-solid fa-chart-line placeholder-result-icon"),
                                 H3("Esperando Parámetros", cls="placeholder-result-title"),
@@ -626,7 +570,6 @@ def contacto():
     return Footer(
         Div(
             Div(
-                # Información del proyecto
                 Div(
                     Div(
                         Span("MI", cls="footer-brand-accent"),
@@ -642,7 +585,6 @@ def contacto():
                     ),
                     cls="footer-col-about"
                 ),
-                # Enlaces rápidos de navegación interna
                 Div(
                     H4("Navegación SPA", cls="footer-section-title"),
                     Div(
@@ -653,7 +595,6 @@ def contacto():
                     ),
                     cls="footer-col-links"
                 ),
-                # Stack tecnológico
                 Div(
                     H4("Stack Tecnológico", cls="footer-section-title"),
                     Div(
@@ -668,7 +609,6 @@ def contacto():
                 ),
                 cls="footer-top-grid"
             ),
-            # Barra de copyright y créditos
             Div(
                 P("© 2026 MiingresoPeru. Desarrollado con fines académicos y de investigación científica.", cls="copyright-text"),
                 P("Curso: Inteligencia Artificial — URP", cls="course-text"),
@@ -678,10 +618,6 @@ def contacto():
         ),
         id="contacto", cls="footer-section"
     )
-
-# =====================================================================
-# 3. RUTAS PRINCIPALES DEL SISTEMA
-# =====================================================================
 
 @rt('/sobre-proyecto')
 def get_sobre_proyecto():
@@ -704,7 +640,6 @@ def get_sobre_proyecto():
         ),
         Body(
             navbar(is_transparent=False),
-            # Espaciador en la página para empujar el contenido por debajo del navbar fijo
             Div(cls="navbar-spacer"),
             sobre_proyecto(),
             contacto(),
@@ -747,12 +682,10 @@ def get():
         Head(
             Meta(charset="UTF-8"),
             Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
-            # SEO y Metatags
             Title("MiingresoPeru — Estimador Salarial con Inteligencia Artificial"),
             Meta(name="description", content="Proyecta tu ingreso mensual esperado en Soles utilizando modelos de Inteligencia Artificial entrenados con datos oficiales de la EPEN del INEI. Proyecto académico de la URP."),
             Meta(name="keywords", content="miingreso, peru, salarios inei, epen inei, inteligencia artificial peru, estimador salarial, urp"),
             Link(rel="icon", href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇵🇪</text></svg>"),
-            # Hojas de estilo y fuentes
             Link(rel="stylesheet", href="/static/fontawesome/css/all.min.css"),
             Link(rel="preconnect", href="https://fonts.googleapis.com"),
             Link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin=""),
@@ -761,7 +694,6 @@ def get():
                 href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap"
             ),
             Link(rel="stylesheet", href="/static/css/style.css"),
-            # IMPORTANTE: Cargamos HTMX explícitamente para garantizar la interactividad SPA sin reloads
             Script(src="https://unpkg.com/htmx.org@1.9.12")
         ),
         Body(
@@ -770,7 +702,6 @@ def get():
             como_funciona(),
             predictor(),
             contacto(),
-            # Scripts personalizados para interacciones SPA y micro-animaciones
             Script("""
                 function toggleMenuMobile() {
                     const menu = document.getElementById('menu-mobile-collapse');
@@ -870,15 +801,13 @@ def get():
 async def post(request):
     """
     Ruta del endpoint de estimación salarial.
-    Recibe los inputs del formulario predictor, los simula con la lógica IA del EPEN
-    y retorna la tarjeta de resultados inyectada dinámicamente vía HTMX.
+    Recibe los inputs del formulario predictor, ejecuta el modelo XGBoost
+    entrenado con datos del EPEN (INEI) y retorna la tarjeta de resultados
+    inyectada dinámicamente vía HTMX.
     """
     try:
-        # Recuperar datos del payload del formulario
         form_data = await request.form()
         datos_recibidos = {k: v for k, v in form_data.items()}
-        
-        # Validación de campos requeridos
         required_fields = ['c366', 'c208', 'c207', 'region', 'c310', 'c317', 'c312', 'seguro1', 'whoraT', 'c338']
         for field in required_fields:
             if not datos_recibidos.get(field):
@@ -888,14 +817,10 @@ async def post(request):
                     cls="result-error-container"
                 )
 
-        # Ejecutar modelo mockup EPEN
         res = predecir_ingreso_real(datos_recibidos)
-
-        # Clases dinámicas según formalidad
         badge_cls = "formalidad-badge badge-formal" if res['es_formal'] else "formalidad-badge badge-informal"
         badge_icon = "fa-solid fa-circle-check" if res['es_formal'] else "fa-solid fa-circle-xmark"
 
-        # Color dinámico para barra de percentil
         percentil_n = res['percentil_numero']
         if percentil_n >= 75:
             percentil_color = "#10B981"   # verde esmeralda
@@ -904,10 +829,8 @@ async def post(request):
         else:
             percentil_color = "#EF4444"   # rojo suave
 
-        # Retornar el panel con los resultados procesados con alto nivel visual
         return Div(
             Div(
-                # ── Encabezado con icono principal ──
                 Div(
                     Div(
                         Div(
@@ -916,14 +839,13 @@ async def post(request):
                         ),
                         Div(
                             H3("Estimación Salarial Generada", cls="success-card-title"),
-                            P("Basado en el preprocesamiento de la encuesta EPEN del INEI", cls="success-card-subtitle"),
+                            P("Predicción generada por modelo XGBoost entrenado con datos EPEN del INEI", cls="success-card-subtitle"),
                         ),
                         cls="success-card-title-group"
                     ),
                     cls="success-card-header"
                 ),
 
-                # ── Ingreso Mensual Principal (Gigante) ──
                 Div(
                     Span("INGRESO MENSUAL ESTIMADO (INGTOT)", cls="ingreso-sub-label"),
                     Div(
@@ -931,7 +853,6 @@ async def post(request):
                         Span(f"{res['ingreso_estimado']:,.2f}", cls="ingreso-value-text"),
                         cls="ingreso-display-group"
                     ),
-                    # Insignia de formalidad laboral
                     Div(
                         I(cls=badge_icon),
                         Span(res['nivel_formalidad'], cls="badge-label"),
@@ -940,9 +861,7 @@ async def post(request):
                     cls="ingreso-display-container"
                 ),
 
-                # ── Métricas Analíticas ──
                 Div(
-                    # Métrica 1: Confianza del Score (con barra de progreso)
                     Div(
                         Div(
                             Div(
@@ -968,7 +887,6 @@ async def post(request):
                         ),
                         cls="metric-meta-card"
                     ),
-                    # Métrica 2: Percentil de Mercado (con barra dinámica)
                     Div(
                         Div(
                             Div(
@@ -994,7 +912,6 @@ async def post(request):
                         ),
                         cls="metric-meta-card"
                     ),
-                    # Métrica 3: Formalidad Laboral
                     Div(
                         Div(
                             Div(
@@ -1015,8 +932,6 @@ async def post(request):
                     ),
                     cls="metrics-dashboard-grid"
                 ),
-
-                # ── Footer Académico ──
                 Div(
                     I(cls="fa-solid fa-graduation-cap URP-badge-icon"),
                     P("Proyecto de Inteligencia Artificial — Universidad Ricardo Palma (Facultad de Ingeniería)", cls="academic-reference-text"),
@@ -1027,7 +942,6 @@ async def post(request):
         )
 
     except Exception as e:
-        # En caso de error inesperado
         return Div(
             I(cls="fa-solid fa-circle-xmark err-icon"),
             P(f"Ha ocurrido un error inesperado al procesar tu solicitud: {str(e)}", cls="err-message"),
