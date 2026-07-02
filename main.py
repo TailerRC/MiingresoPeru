@@ -179,7 +179,11 @@ def navbar():
             ),
             # Navbar Principal
             Div(
-                A(
+                Div(
+                    A(
+                        Img(src="/static/imagenes/logo.png", alt="Logo MlingresoPeru", cls="navbar-logo"),
+                        href="#inicio", cls="logo-link"
+                    ),
                     Div(
                         Div(
                             Span("MI", cls="brand-accent"),
@@ -187,10 +191,10 @@ def navbar():
                             Span("Peru", cls="brand-country"),
                             cls="brand-logo-text"
                         ),
-                        P("Estimador Salarial Inteligente · EPEN INEI", cls="brand-subtext"),
                         cls="brand-logo-group"
                     ),
-                    href="#inicio", cls="brand-anchor"
+                    Img(src="/static/imagenes/etiqueta.png", alt="Aval Académico", cls="navbar-badge-img"),
+                    cls="brand-group"
                 ),
                 Nav(
                     A(I(cls="fa-solid fa-house"), "Inicio", href="#inicio", cls="menu-link"),
@@ -207,12 +211,55 @@ def navbar():
     )
 
 def hero():
-    return Section(
-        Div(
+    return Div(
+        Section(
+            # 1. Slider de Fondo (Ancho y Alto Completo)
             Div(
-                # Columna de texto principal del Hero
+                # Contenedor de slides
                 Div(
-                    Span(I(cls="fa-solid fa-microchip"), " INTELIGENCIA ARTIFICIAL APLICADA", cls="hero-eyebrow"),
+                    # Slide 1
+                    Div(
+                        Img(src="/static/imagenes/slide1.jpg", alt="Slide 1", cls="slide-img"),
+                        Div("Análisis EPEN 2025", cls="slide-caption"),
+                        cls="slide active"
+                    ),
+                    # Slide 2
+                    Div(
+                        Img(src="/static/imagenes/slide2.jpg", alt="Slide 2", cls="slide-img"),
+                        Div("Algoritmos de Gradient Boosting", cls="slide-caption"),
+                        cls="slide"
+                    ),
+                    # Slide 3
+                    Div(
+                        Img(src="/static/imagenes/slide3.jpg", alt="Slide 3", cls="slide-img"),
+                        Div("Investigación Académica URP", cls="slide-caption"),
+                        cls="slide"
+                    ),
+                    # Slide 4
+                    Div(
+                        Img(src="/static/imagenes/slide4.jpg", alt="Slide 4", cls="slide-img"),
+                        Div("Campus URP", cls="slide-caption"),
+                        cls="slide"
+                    ),
+                    cls="slides-wrapper"
+                ),
+                # Controles de navegación
+                Button(I(cls="fa-solid fa-chevron-left"), cls="slider-btn prev"),
+                Button(I(cls="fa-solid fa-chevron-right"), cls="slider-btn next"),
+                # Puntos indicadores
+                Div(
+                    Span(cls="dot active"),
+                    Span(cls="dot"),
+                    Span(cls="dot"),
+                    Span(cls="dot"),
+                    cls="slider-dots"
+                ),
+                cls="hero-slider"
+            ),
+            # 2. Capa de Contenido Superpuesto (Texto y Botones a la izquierda)
+            Div(
+                Div(
+                    Span( "", cls="hero-overlay-eyebrow"),
                     H1(
                         "Estima tu ",
                         Span("ingreso mensual", cls="red-gradient-text"),
@@ -220,9 +267,8 @@ def hero():
                     ),
                     P(
                         "Utiliza nuestro algoritmo predictor entrenado con los datos de la Encuesta "
-                        "Permanente de Empleo Nacional (EPEN) del INEI para analizar tu perfil profesional "
-                        "y proyectar tus metas salariales.",
-                        cls="hero-description"
+                        "Permanente de Empleo Nacional (EPEN) del INEI para proyectar tus metas salariales.",
+                        cls="hero-overlay-desc"
                     ),
                     Div(
                         A(I(cls="fa-solid fa-calculator"), "Calcular Salario", href="#predictor", cls="btn-cta-primary"),
@@ -235,50 +281,47 @@ def hero():
                         Span(I(cls="fa-solid fa-university"), "Investigación URP", cls="hero-badge-item"),
                         cls="hero-badges-container"
                     ),
-                    cls="hero-text-content"
+                    cls="hero-content-overlay"
                 ),
-                # Columna de estadísticas e imagen institucional en 3D
-                Div(
-                    Div(
-                        # Tarjeta 1: Precisión
-                        Div(
-                            I(cls="fa-solid fa-bullseye card-stat-icon"),
-                            Div(
-                                Span("Precisión del Modelo", cls="card-stat-title"),
-                                Span("87.4%", cls="card-stat-value"),
-                                cls="card-stat-texts"
-                            ),
-                            cls="hero-stat-card card-accent-red"
-                        ),
-                        # Tarjeta 2: Tamaño Dataset
-                        Div(
-                            I(cls="fa-solid fa-database card-stat-icon"),
-                            Div(
-                                Span("Registros EPEN", cls="card-stat-title"),
-                                Span("120K+ Muestras", cls="card-stat-value"),
-                                cls="card-stat-texts"
-                            ),
-                            cls="hero-stat-card"
-                        ),
-                        # Tarjeta 3: Algoritmo
-                        Div(
-                            I(cls="fa-solid fa-brain card-stat-icon"),
-                            Div(
-                                Span("Algoritmo Predictor", cls="card-stat-title"),
-                                Span("Gradient Boosting", cls="card-stat-value"),
-                                cls="card-stat-texts"
-                            ),
-                            cls="hero-stat-card"
-                        ),
-                        cls="hero-stats-grid"
-                    ),
-                    cls="hero-visual-content"
-                ),
-                cls="hero-flex-layout"
+                cls="section-container hero-content-wrapper"
             ),
-            cls="section-container"
+            id="inicio", cls="hero-section-fullwidth"
         ),
-        id="inicio", cls="hero-section"
+        # 3. Fila de Métricas Estadísticas (Flota sobre la base del hero)
+        Div(
+            # Tarjeta 1: Precisión
+            Div(
+                I(cls="fa-solid fa-bullseye card-stat-icon"),
+                Div(
+                    Span("Precisión del Modelo", cls="card-stat-title"),
+                    Span("87.4%", cls="card-stat-value"),
+                    cls="card-stat-texts"
+                ),
+                cls="hero-stat-card card-accent-red"
+            ),
+            # Tarjeta 2: Tamaño Dataset
+            Div(
+                I(cls="fa-solid fa-database card-stat-icon"),
+                Div(
+                    Span("Registros EPEN", cls="card-stat-title"),
+                    Span("120K+ Muestras", cls="card-stat-value"),
+                    cls="card-stat-texts"
+                ),
+                cls="hero-stat-card"
+            ),
+            # Tarjeta 3: Algoritmo
+            Div(
+                I(cls="fa-solid fa-brain card-stat-icon"),
+                Div(
+                    Span("Algoritmo Predictor", cls="card-stat-title"),
+                    Span("Gradient Boosting", cls="card-stat-value"),
+                    cls="card-stat-texts"
+                ),
+                cls="hero-stat-card"
+            ),
+            cls="hero-bottom-stats-row"
+        ),
+        cls="hero-wrapper-container"
     )
 
 def como_funciona():
@@ -630,6 +673,49 @@ def get():
                 }, { threshold: 0.1 });
 
                 revealElements.forEach(el => observer.observe(el));
+
+                // Lógica del Carrusel / Banner Rotativo (Fade suave)
+                let currentSlideIndex = 0;
+                const slides = document.querySelectorAll('.slide');
+                const dots = document.querySelectorAll('.dot');
+
+                function showSlide(index) {
+                    if (slides.length === 0) return;
+                    if (index >= slides.length) {
+                        currentSlideIndex = 0;
+                    } else if (index < 0) {
+                        currentSlideIndex = slides.length - 1;
+                    } else {
+                        currentSlideIndex = index;
+                    }
+                    
+                    slides.forEach((slide, i) => {
+                        slide.classList.toggle('active', i === currentSlideIndex);
+                    });
+                    
+                    dots.forEach((dot, i) => {
+                        dot.classList.toggle('active', i === currentSlideIndex);
+                    });
+                }
+
+                document.querySelector('.slider-btn.prev')?.addEventListener('click', () => {
+                    showSlide(currentSlideIndex - 1);
+                });
+
+                document.querySelector('.slider-btn.next')?.addEventListener('click', () => {
+                    showSlide(currentSlideIndex + 1);
+                });
+
+                dots.forEach((dot, index) => {
+                    dot.addEventListener('click', () => {
+                        showSlide(index);
+                    });
+                });
+
+                // Rotación automática cada 5 segundos
+                setInterval(() => {
+                    showSlide(currentSlideIndex + 1);
+                }, 5000);
             """)
         )
     )
