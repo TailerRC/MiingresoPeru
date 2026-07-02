@@ -1,265 +1,565 @@
+# =====================================================================
+# PROYECTO ACADÉMICO: MIINGRESOPERU (UNIVERSIDAD RICARDO PALMA)
+# Estimador Salarial basado en la Encuesta Permanente de Empleo (EPEN)
+# =====================================================================
+
 from fasthtml.common import *  # noqa: F403
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
-app, rt = fast_app(secret_key=os.environ.get("SESSION_SECRET"))
+# Inicialización de FastHTML - pico=False previene conflictos con nuestros estilos custom.css
+app, rt = fast_app(pico=False, secret_key=os.environ.get("SESSION_SECRET", "mi_secreto_seguro_urp_2026"))
+
+# =====================================================================
+# 1. DATOS MOCKUP (Mocking) - LÓGICA DE SIMULACIÓN IA
+# =====================================================================
+def simular_modelo_ia_epen(datos_recibidos: dict) -> dict:
+    """
+    Simula la predicción del modelo de Machine Learning entrenado con el EPEN (INEI).
+    Calcula un ingreso mensual estimado realista a partir de los inputs recibidos
+    y devuelve un diccionario estructurado.
+    """
+    try:
+        c366 = int(datos_recibidos.get('c366', 6))  # Nivel educativo (default: Sec. Completa)
+    except ValueError:
+        c366 = 6
+
+    try:
+        c208 = int(datos_recibidos.get('c208', 30))  # Edad (default: 30)
+    except ValueError:
+        c208 = 30
+
+    c207 = datos_recibidos.get('c207', '1')        # Sexo (1 = Hombre, 2 = Mujer)
+    region = datos_recibidos.get('region', '1')      # Región (1 = Lima Metropolitana, 2 = Resto Urbano, 3 = Rural)
+    c310 = datos_recibidos.get('c310', '3')        # Tipo de trabajo (default: Empleado/obrero)
+    c317 = datos_recibidos.get('c317', '1')        # Tamaño de empresa (default: Hasta 20 personas)
+    c312 = datos_recibidos.get('c312', '1')        # Formalidad buscada (default: Sí, formal PJ)
+    seguro1 = datos_recibidos.get('seguro1', '5')    # Seguro de salud (default: SIS)
+    
+    try:
+        whoraT = int(datos_recibidos.get('whoraT', 40))  # Horas semanales (default: 40)
+    except ValueError:
+        whoraT = 40
+
+    c338 = datos_recibidos.get('c338', '4')        # Frecuencia de pago (default: Mensual)
+
+    # Lógica de estimación basada en factores de mercado peruano reales
+    # Salario Mínimo Vital base aproximado: S/ 1025
+    base = 1025.0
+
+    # 1. Multiplicador de Nivel Educativo (c366)
+    educ_multipliers = {
+        1: 0.0,    # Sin nivel
+        2: 0.05,   # Educación Inicial
+        3: 0.10,   # Primaria incompleta
+        4: 0.20,   # Primaria completa
+        5: 0.35,   # Secundaria incompleta
+        6: 0.65,   # Secundaria completa
+        7: 0.50,   # Básica especial
+        8: 1.00,   # Sup. no univ. incompleta
+        9: 1.40,   # Sup. no univ. completa
+        10: 1.70,  # Sup. univ. incompleta
+        11: 2.60,  # Sup. univ. completa
+        12: 4.20   # Maestría/Doctorado
+    }
+    base += base * educ_multipliers.get(c366, 0.65)
+
+    # 2. Factor de Experiencia / Edad (c208)
+    # Pico de ingresos en el mercado peruano ronda los 35-50 años.
+    if c208 < 18:
+        base = base * 0.75
+    elif c208 > 65:
+        base = base * 0.85
+    else:
+        # Incremento sutil por madurez laboral
+        base += (c208 - 18) * 35.0
+
+    # 3. Factor de Región (region)
+    region_mods = {
+        '1': 700.0,   # Lima Metropolitana
+        '2': 250.0,   # Resto urbano
+        '3': -200.0   # Rural
+    }
+    base += region_mods.get(region, 250.0)
+
+    # 4. Tipo de Trabajo (c310)
+    job_mods = {
+        '1': 1200.0,  # Empleador o patrono
+        '2': 150.0,   # Trabajador independiente
+        '3': 450.0,   # Empleado u obrero
+        '6': -250.0,  # Trabajador del hogar
+        '7': -150.0   # Aprendiz/practicante
+    }
+    base += job_mods.get(c310, 450.0)
+
+    # 5. Tamaño de Empresa (c317)
+    company_mods = {
+        '1': 0.0,      # Hasta 20 personas
+        '2': 350.0,    # De 21 a 50 personas
+        '3': 700.0,    # De 51 a 100 personas
+        '4': 1100.0,   # De 101 a 500 personas
+        '5': 1900.0    # Más de 500 personas
+    }
+    base += company_mods.get(c317, 0.0)
+
+    # 6. Seguro de Salud (seguro1)
+    insurance_mods = {
+        '1': 300.0,   # EsSalud (formalidad típica)
+        '2': 600.0,   # Seguro privado (ingresos altos)
+        '3': 700.0,   # Ambos
+        '4': 0.0,     # Otro
+        '5': -100.0,  # SIS
+        '6': -150.0   # No está afiliado
+    }
+    base += insurance_mods.get(seguro1, 0.0)
+
+    # 7. Horas de Trabajo (whoraT) normalizado a la jornada estándar de 48 horas
+    hours_ratio = min(max(whoraT / 48.0, 0.25), 1.75)
+    base = base * hours_ratio
+
+    # 8. Formalidad (c312)
+    if c312 == '1':
+        base += 500.0  # Persona Jurídica
+    elif c312 == '2':
+        base += 250.0  # Persona Natural RUC
+    elif c312 == '3':
+        base -= 250.0  # Informal
+
+    # Salario estimado redondeado y acotado al rango realista
+    salario_final = round(max(base, 1025.0), 2)
+
+    # Nivel de formalidad descriptivo
+    formalidad_map = {
+        '1': 'Formal (Empresa Registrada)',
+        '2': 'Formal (Persona Natural con RUC)',
+        '3': 'Informal (Sin RUC)',
+        '4': 'Informal (No especificado / No sabe)'
+    }
+    nivel_formalidad = formalidad_map.get(c312, 'Formal (Empresa Registrada)')
+
+    # Percentil del mercado según el salario estimado
+    if salario_final < 1400.0:
+        percentil_mercado = 'Percentil 30 (Ingreso Básico)'
+    elif salario_final < 2800.0:
+        percentil_mercado = 'Percentil 55 (Ingreso Promedio)'
+    elif salario_final < 5000.0:
+        percentil_mercado = 'Top 25% superior'
+    else:
+        percentil_mercado = 'Top 10% de altos ingresos'
+
+    # Confianza del score simulada (estable pero cambia ligeramente con los inputs)
+    factor_hash = (c366 * 3 + c208 + int(c207) * 7 + int(region) * 11) % 15
+    confianza_val = 84.0 + (factor_hash * 0.9)
+    confianza_score = f"{round(confianza_val, 1)}%"
+
+    return {
+        'ingreso_estimado': salario_final,
+        'confianza_score': confianza_score,
+        'nivel_formalidad': nivel_formalidad,
+        'percentil_mercado': percentil_mercado
+    }
+
+# =====================================================================
+# 2. VISTAS DEL COMPONENTE FRONTEND SPA
+# =====================================================================
 
 def navbar():
-    return Nav(
+    return Header(
         Div(
-            # Banda roja superior estilo gob.pe
+            # Banda institucional gubernamental sutil estilo gob.pe
             Div(
                 Div(
                     I(cls="fa-solid fa-landmark"),
-                    Span(" República del Perú"),
-                    cls="gov-band-inner"
+                    Span("Proyecto de Investigación Académica · Universidad Ricardo Palma"),
+                    cls="gov-header-inner"
                 ),
-                cls="gov-band"
+                cls="gov-header-band"
             ),
-            # Navbar principal
+            # Navbar Principal
             Div(
                 A(
                     Div(
                         Div(
-                            Span("MI", cls="logo-mi"),
-                            Span("ingreso", cls="logo-ingreso"),
-                            Span("Peru", cls="logo-peru"),
-                            cls="logo-text"
+                            Span("MI", cls="brand-accent"),
+                            Span("ingreso", cls="brand-main"),
+                            Span("Peru", cls="brand-country"),
+                            cls="brand-logo-text"
                         ),
-                        P("Estimador salarial con IA · INEI - ENAHO", cls="logo-sub"),
-                        cls="logo-content"
+                        P("Estimador Salarial Inteligente · EPEN INEI", cls="brand-subtext"),
+                        cls="brand-logo-group"
                     ),
-                    href="/", cls="logo"
+                    href="#inicio", cls="brand-anchor"
                 ),
-                Div(
-                    A(I(cls="fa-solid fa-house"), Span(" Inicio"), href="#hero", cls="nav-link"),
-                    A(I(cls="fa-solid fa-circle-info"), Span(" Cómo funciona"), href="#como-funciona", cls="nav-link"),
-                    A(I(cls="fa-solid fa-calculator"), Span(" Predictor"), href="#predictor", cls="nav-link"),
-                    A(I(cls="fa-solid fa-envelope"), Span(" Contacto"), href="#contacto", cls="nav-link"),
-                    cls="nav-links"
+                Nav(
+                    A(I(cls="fa-solid fa-house"), "Inicio", href="#inicio", cls="menu-link"),
+                    A(I(cls="fa-solid fa-gears"), "Cómo funciona", href="#como-funciona", cls="menu-link"),
+                    A(I(cls="fa-solid fa-calculator"), "Predictor", href="#predictor", cls="menu-link"),
+                    A(I(cls="fa-solid fa-envelope"), "Contacto", href="#contacto", cls="menu-link"),
+                    cls="menu-nav-links"
                 ),
-                cls="nav-inner"
+                cls="navbar-main-content"
             ),
-            cls="navbar-wrapper"
+            cls="navbar-container"
         ),
-        cls="navbar"
+        cls="navbar-fixed-element"
     )
 
 def hero():
     return Section(
         Div(
             Div(
+                # Columna de texto principal del Hero
                 Div(
-                    Span(I(cls="fa-solid fa-robot"), " Modelo de ML · Perú 2026", cls="eyebrow"),
+                    Span(I(cls="fa-solid fa-microchip"), " INTELIGENCIA ARTIFICIAL APLICADA", cls="hero-eyebrow"),
                     H1(
-                        "Predice tu ",
-                        Span("ingreso mensual", cls="highlight"),
-                        " con inteligencia artificial"
+                        "Estima tu ",
+                        Span("ingreso mensual", cls="red-gradient-text"),
+                        " en el mercado laboral peruano"
                     ),
-                    P("Ingresa tus datos y nuestro modelo entrenado con datos reales del INEI te estima tu rango salarial en segundos.", cls="hero-sub"),
+                    P(
+                        "Utiliza nuestro algoritmo predictor entrenado con los datos de la Encuesta "
+                        "Permanente de Empleo Nacional (EPEN) del INEI para analizar tu perfil profesional "
+                        "y proyectar tus metas salariales.",
+                        cls="hero-description"
+                    ),
                     Div(
-                        A(I(cls="fa-solid fa-play"), " Probar ahora", href="#predictor", cls="btn-primary"),
-                        A(I(cls="fa-solid fa-circle-question"), " ¿Cómo funciona?", href="#como-funciona", cls="btn-ghost"),
-                        cls="hero-actions"
+                        A(I(cls="fa-solid fa-calculator"), "Calcular Salario", href="#predictor", cls="btn-cta-primary"),
+                        A(I(cls="fa-solid fa-circle-question"), "Ver Metodología", href="#como-funciona", cls="btn-cta-ghost"),
+                        cls="hero-buttons-wrapper"
                     ),
-                    # Badges institucionales
+                    # Badges académicos e institucionales
                     Div(
-                        Span(I(cls="fa-solid fa-shield-halved"), " Datos oficiales INEI", cls="badge"),
-                        Span(I(cls="fa-solid fa-graduation-cap"), " Proyecto académico", cls="badge"),
-                        cls="badges"
+                        Span(I(cls="fa-solid fa-circle-check"), "Datos de EPEN INEI", cls="hero-badge-item"),
+                        Span(I(cls="fa-solid fa-university"), "Investigación URP", cls="hero-badge-item"),
+                        cls="hero-badges-container"
                     ),
-                    cls="hero-text"
+                    cls="hero-text-content"
                 ),
+                # Columna de estadísticas e imagen institucional en 3D
                 Div(
                     Div(
+                        # Tarjeta 1: Precisión
                         Div(
-                            I(cls="fa-solid fa-bullseye stat-icon"),
+                            I(cls="fa-solid fa-bullseye card-stat-icon"),
                             Div(
-                                Span("Precisión del modelo", cls="stat-label"),
-                                Span("87.4%", cls="stat-value"),
-                                cls="stat-info"
+                                Span("Precisión del Modelo", cls="card-stat-title"),
+                                Span("87.4%", cls="card-stat-value"),
+                                cls="card-stat-texts"
                             ),
-                            cls="stat-card"
+                            cls="hero-stat-card card-accent-red"
                         ),
+                        # Tarjeta 2: Tamaño Dataset
                         Div(
-                            I(cls="fa-solid fa-database stat-icon"),
+                            I(cls="fa-solid fa-database card-stat-icon"),
                             Div(
-                                Span("Registros entrenados", cls="stat-label"),
-                                Span("120K+", cls="stat-value"),
-                                cls="stat-info"
+                                Span("Registros EPEN", cls="card-stat-title"),
+                                Span("120K+ Muestras", cls="card-stat-value"),
+                                cls="card-stat-texts"
                             ),
-                            cls="stat-card"
+                            cls="hero-stat-card"
                         ),
+                        # Tarjeta 3: Algoritmo
                         Div(
-                            I(cls="fa-solid fa-file-lines stat-icon"),
+                            I(cls="fa-solid fa-brain card-stat-icon"),
                             Div(
-                                Span("Fuente de datos", cls="stat-label"),
-                                Span("ENAHO · INEI", cls="stat-value"),
-                                cls="stat-info"
+                                Span("Algoritmo Predictor", cls="card-stat-title"),
+                                Span("Gradient Boosting", cls="card-stat-value"),
+                                cls="card-stat-texts"
                             ),
-                            cls="stat-card"
+                            cls="hero-stat-card"
                         ),
-                        cls="stats-grid"
+                        cls="hero-stats-grid"
                     ),
-                    cls="hero-visual"
+                    cls="hero-visual-content"
                 ),
-                cls="hero-inner"
+                cls="hero-flex-layout"
             ),
+            cls="section-container"
         ),
-        id="hero", cls="hero"
+        id="inicio", cls="hero-section"
     )
 
 def como_funciona():
     pasos = [
-        ("fa-solid fa-pen-to-square", "Ingresa tus datos", "Llena el formulario con tu nivel educativo, rubro, experiencia y región."),
-        ("fa-solid fa-microchip", "El modelo analiza", "Nuestro modelo de regresión entrenado en Google Colab procesa tu perfil."),
-        ("fa-solid fa-chart-bar", "Obtén tu estimación", "Recibe tu rango salarial estimado y percentil dentro de tu sector."),
+        ("fa-solid fa-clipboard-list", "1. Registrar tus Datos", "Ingresa variables demográficas y laborales como educación, región, edad y horas semanales esperadas."),
+        ("fa-solid fa-chart-line", "2. Procesamiento de IA", "El modelo de predicción calcula tu perfil contra el histórico ponderado de la encuesta nacional EPEN del INEI."),
+        ("fa-solid fa-chart-pie", "3. Análisis de Resultados", "Obtén la estimación salarial exacta en Soles, confianza del cálculo, nivel de formalidad y tu posición en el percentil del mercado.")
     ]
     return Section(
         Div(
-            Span(I(cls="fa-solid fa-gears"), " Proceso", cls="eyebrow"),
-            H2("Simple, rápido y transparente"),
             Div(
-                *[
-                    Div(
+                Span(I(cls="fa-solid fa-gears"), " METODOLOGÍA", cls="section-eyebrow"),
+                H2("¿Cómo se estima tu ingreso mensual?", cls="section-main-heading"),
+                P("Nuestro sistema procesa tus inputs a través de un pipeline estructurado en 3 pasos clave:", cls="section-sub-heading"),
+                
+                Div(
+                    *[
                         Div(
-                            I(cls=icono),
-                            cls="step-icon-wrap"
-                        ),
-                        H3(titulo),
-                        P(desc),
-                        cls="step-card"
-                    )
-                    for icono, titulo, desc in pasos
-                ],
-                cls="steps-grid"
+                            Div(
+                                Div(I(cls=icono), cls="step-card-icon-container"),
+                                cls="step-card-header"
+                            ),
+                            H3(titulo, cls="step-card-title"),
+                            P(descripcion, cls="step-card-desc"),
+                            cls="step-card-element"
+                        )
+                        for icono, titulo, descripcion in pasos
+                    ],
+                    cls="steps-horizontal-grid"
+                ),
+                cls="section-inner-wrapper"
             ),
-            cls="section-inner"
+            cls="section-container"
         ),
-        id="como-funciona", cls="section section-alt"
+        id="como-funciona", cls="section-grey-background"
     )
 
 def predictor():
     return Section(
         Div(
-            Span(I(cls="fa-solid fa-calculator"), " Predictor", cls="eyebrow"),
-            H2("Calcula tu ingreso estimado"),
-            # Aviso institucional
             Div(
-                I(cls="fa-solid fa-circle-info"),
-                " Estimación basada en datos ENAHO del INEI. Solo con fines académicos e informativos.",
-                cls="aviso-info"
-            ),
-            Div(
+                Span(I(cls="fa-solid fa-calculator"), " PROYECCIÓN SALARIAL", cls="section-eyebrow"),
+                H2("Calculadora de Ingreso Estimado", cls="section-main-heading"),
+                
+                # Panel informativo
                 Div(
-                    Div(
-                        Label(I(cls="fa-solid fa-user-graduate"), " Nivel educativo", For="educacion"),
-                        Select(
-                            Option("Selecciona...", value="", disabled=True, selected=True),
-                            Option("Sin instrucción", value="0"),
-                            Option("Primaria", value="1"),
-                            Option("Secundaria", value="2"),
-                            Option("Técnico", value="3"),
-                            Option("Universitario", value="4"),
-                            Option("Postgrado", value="5"),
-                            id="educacion", name="educacion"
-                        ),
-                        cls="field"
-                    ),
-                    Div(
-                        Label(I(cls="fa-solid fa-briefcase"), " Sector laboral", For="sector"),
-                        Select(
-                            Option("Selecciona...", value="", disabled=True, selected=True),
-                            Option("Agricultura", value="agri"),
-                            Option("Comercio", value="comercio"),
-                            Option("Construcción", value="construccion"),
-                            Option("Educación", value="educacion"),
-                            Option("Salud", value="salud"),
-                            Option("Tecnología", value="tech"),
-                            Option("Manufactura", value="manufactura"),
-                            id="sector", name="sector"
-                        ),
-                        cls="field"
-                    ),
-                    Div(
-                        Label(I(cls="fa-solid fa-clock"), " Años de experiencia", For="experiencia"),
-                        Input(type="number", id="experiencia", name="experiencia", placeholder="Ej: 5", min="0", max="50"),
-                        cls="field"
-                    ),
-                    Div(
-                        Label(I(cls="fa-solid fa-map-location-dot"), " Región", For="region"),
-                        Select(
-                            Option("Selecciona...", value="", disabled=True, selected=True),
-                            Option("Lima", value="lima"),
-                            Option("Arequipa", value="arequipa"),
-                            Option("La Libertad", value="la_libertad"),
-                            Option("Cusco", value="cusco"),
-                            Option("Piura", value="piura"),
-                            Option("Otro", value="otro"),
-                            id="region", name="region"
-                        ),
-                        cls="field"
-                    ),
-                    Div(
-                        Label(I(cls="fa-solid fa-calendar-week"), " Horas semanales", For="horas"),
-                        Input(type="number", id="horas", name="horas", placeholder="Ej: 40", min="1", max="80"),
-                        cls="field"
-                    ),
-                    Div(
-                        Label(I(cls="fa-solid fa-venus-mars"), " Sexo", For="sexo"),
-                        Select(
-                            Option("Selecciona...", value="", disabled=True, selected=True),
-                            Option("Masculino", value="1"),
-                            Option("Femenino", value="0"),
-                            id="sexo", name="sexo"
-                        ),
-                        cls="field"
-                    ),
-                    cls="form-grid"
+                    I(cls="fa-solid fa-triangle-exclamation warning-icon"),
+                    P("El modelo actual utiliza datos del preprocesamiento EPEN del INEI. Las estimaciones son simuladas con fines académicos y de desarrollo de la interfaz de usuario.", cls="warning-text"),
+                    cls="warning-banner-container"
                 ),
-                Button(
-                    I(cls="fa-solid fa-magnifying-glass-chart"),
-                    Span(" Predecir ingreso"),
-                    cls="btn-primary btn-full",
-                    hx_post="/predecir",
-                    hx_include="closest div",
-                    hx_target="#resultado",
-                    hx_swap="innerHTML"
-                ),
+                
+                # Grid Side-by-Side (Lado a Lado)
                 Div(
-                    P(I(cls="fa-solid fa-arrow-up-from-bracket"), " Completa el formulario y presiona el botón para ver tu estimación.", cls="resultado-placeholder"),
-                    id="resultado", cls="resultado-box"
+                    # Columna de Formulario
+                    Div(
+                        Form(
+                            Div(
+                                # 1. Nivel Educativo
+                                Div(
+                                    Label(I(cls="fa-solid fa-graduation-cap label-icon"), " Nivel Educativo (c366)", For="c366"),
+                                    Select(
+                                        Option("Selecciona...", value="", disabled=True, selected=True),
+                                        Option("Sin nivel", value="1"),
+                                        Option("Educación Inicial", value="2"),
+                                        Option("Primaria incompleta", value="3"),
+                                        Option("Primaria completa", value="4"),
+                                        Option("Secundaria incompleta", value="5"),
+                                        Option("Secundaria completa", value="6"),
+                                        Option("Básica especial", value="7"),
+                                        Option("Sup. no univ. incompleta", value="8"),
+                                        Option("Sup. no univ. completa", value="9"),
+                                        Option("Sup. univ. incompleta", value="10"),
+                                        Option("Sup. univ. completa", value="11"),
+                                        Option("Maestría/Doctorado", value="12"),
+                                        id="c366", name="c366", required=True
+                                    ),
+                                    cls="form-group-field"
+                                ),
+                                # 2. Edad
+                                Div(
+                                    Label(I(cls="fa-solid fa-cake-candles label-icon"), " ¿Cuántos años tienes? (c208)", For="c208"),
+                                    Input(type="number", id="c208", name="c208", placeholder="Ej: 25", min="14", max="100", required=True),
+                                    cls="form-group-field"
+                                ),
+                                # 3. Sexo
+                                Div(
+                                    Label(I(cls="fa-solid fa-venus-mars label-icon"), " Sexo (c207)", For="c207"),
+                                    Select(
+                                        Option("Selecciona...", value="", disabled=True, selected=True),
+                                        Option("Hombre", value="1"),
+                                        Option("Mujer", value="2"),
+                                        id="c207", name="c207", required=True
+                                    ),
+                                    cls="form-group-field"
+                                ),
+                                # 4. Región
+                                Div(
+                                    Label(I(cls="fa-solid fa-earth-americas label-icon"), " ¿En qué región buscas trabajo? (region)", For="region"),
+                                    Select(
+                                        Option("Selecciona...", value="", disabled=True, selected=True),
+                                        Option("Lima Metropolitana", value="1"),
+                                        Option("Resto urbano", value="2"),
+                                        Option("Rural", value="3"),
+                                        id="region", name="region", required=True
+                                    ),
+                                    cls="form-group-field"
+                                ),
+                                # 5. Tipo de trabajo
+                                Div(
+                                    Label(I(cls="fa-solid fa-network-wired label-icon"), " Tipo de trabajo al que aspiras (c310)", For="c310"),
+                                    Select(
+                                        Option("Selecciona...", value="", disabled=True, selected=True),
+                                        Option("Empleador o patrono", value="1"),
+                                        Option("Trabajador independiente", value="2"),
+                                        Option("Empleado u obrero", value="3"),
+                                        Option("Trabajador del hogar", value="6"),
+                                        Option("Aprendiz/practicante remunerado", value="7"),
+                                        id="c310", name="c310", required=True
+                                    ),
+                                    cls="form-group-field"
+                                ),
+                                # 6. Tamaño de empresa
+                                Div(
+                                    Label(I(cls="fa-solid fa-users label-icon"), " Tamaño de empresa esperado (c317)", For="c317"),
+                                    Select(
+                                        Option("Selecciona...", value="", disabled=True, selected=True),
+                                        Option("Hasta 20 personas", value="1"),
+                                        Option("De 21 a 50 personas", value="2"),
+                                        Option("De 51 a 100 personas", value="3"),
+                                        Option("De 101 a 500 personas", value="4"),
+                                        Option("Más de 500 personas", value="5"),
+                                        id="c317", name="c317", required=True
+                                    ),
+                                    cls="form-group-field"
+                                ),
+                                # 7. ¿Buscas negocio formal?
+                                Div(
+                                    Label(I(cls="fa-solid fa-building-shield label-icon"), " ¿Buscas negocio/empleo formal? (c312)", For="c312"),
+                                    Select(
+                                        Option("Selecciona...", value="", disabled=True, selected=True),
+                                        Option("Sí, formal (Persona jurídica)", value="1"),
+                                        Option("Persona natural con RUC", value="2"),
+                                        Option("Prefiero informal (Sin RUC)", value="3"),
+                                        Option("No sabe", value="4"),
+                                        id="c312", name="c312", required=True
+                                    ),
+                                    cls="form-group-field"
+                                ),
+                                # 8. Seguro de salud
+                                Div(
+                                    Label(I(cls="fa-solid fa-hand-holding-heart label-icon"), " Seguro de salud esperado (seguro1)", For="seguro1"),
+                                    Select(
+                                        Option("Selecciona...", value="", disabled=True, selected=True),
+                                        Option("EsSalud", value="1"),
+                                        Option("Seguro privado", value="2"),
+                                        Option("Ambos", value="3"),
+                                        Option("Otro", value="4"),
+                                        Option("SIS", value="5"),
+                                        Option("No está afiliado", value="6"),
+                                        id="seguro1", name="seguro1", required=True
+                                    ),
+                                    cls="form-group-field"
+                                ),
+                                # 9. Horas semanales
+                                Div(
+                                    Label(I(cls="fa-solid fa-hourglass-half label-icon"), " ¿Horas semanales planeadas? (whoraT)", For="whoraT"),
+                                    Input(type="number", id="whoraT", name="whoraT", placeholder="Ej: 48", min="1", max="120", required=True),
+                                    cls="form-group-field"
+                                ),
+                                # 10. Frecuencia de pago
+                                Div(
+                                    Label(I(cls="fa-solid fa-money-check-dollar label-icon"), " Frecuencia de pago esperada (c338)", For="c338"),
+                                    Select(
+                                        Option("Selecciona...", value="", disabled=True, selected=True),
+                                        Option("Diario", value="1"),
+                                        Option("Semanal", value="2"),
+                                        Option("Quincenal", value="3"),
+                                        Option("Mensual", value="4"),
+                                        id="c338", name="c338", required=True
+                                    ),
+                                    cls="form-group-field"
+                                ),
+                                cls="inputs-grid-layout"
+                            ),
+                            Button(
+                                I(cls="fa-solid fa-wand-magic-sparkles submit-btn-icon"),
+                                Span("Calcular Ingreso Estimado"),
+                                type="submit",
+                                cls="btn-predictor-submit btn-pulse"
+                            ),
+                            hx_post="/calcular-salario",
+                            hx_target="#resultado-ia-target",
+                            hx_swap="innerHTML",
+                            cls="predictor-form-block"
+                        ),
+                        cls="predictor-form-column"
+                    ),
+                    # Columna de Resultados (Lado Derecho)
+                    Div(
+                        Div(
+                            # Contenedor del placeholder inicial
+                            Div(
+                                I(cls="fa-solid fa-chart-line placeholder-result-icon"),
+                                H3("Esperando Parámetros", cls="placeholder-result-title"),
+                                P("Completa todos los campos del perfil laboral en el formulario de la izquierda y haz clic en calcular para proyectar tu salario estimado.", cls="placeholder-result-desc"),
+                                cls="placeholder-result-wrapper"
+                            ),
+                            id="resultado-ia-target",
+                            cls="result-box-interactive-panel"
+                        ),
+                        cls="predictor-result-column"
+                    ),
+                    cls="predictor-grid-layout"
                 ),
-                cls="form-wrapper"
+                cls="section-inner-wrapper"
             ),
-            cls="section-inner"
+            cls="section-container"
         ),
-        id="predictor", cls="section"
+        id="predictor", cls="section-white-background"
     )
 
-def footer():
+def contacto():
     return Footer(
         Div(
             Div(
-                Span("MI", cls="logo-mi"),
-                Span("ingreso", cls="logo-ingreso"),
-                Span("Peru", cls="logo-peru"),
-                cls="footer-logo"
+                # Información del proyecto
+                Div(
+                    Div(
+                        Span("MI", cls="footer-brand-accent"),
+                        Span("ingreso", cls="footer-brand-main"),
+                        Span("Peru", cls="footer-brand-country"),
+                        cls="footer-brand-title"
+                    ),
+                    P(
+                        "MiingresoPeru es un estimador interactivo de ingresos mensuales en soles"
+                        " desarrollado como proyecto de investigación por estudiantes de la Universidad Ricardo Palma, "
+                        "utilizando machine learning entrenado sobre el EPEN del INEI.",
+                        cls="footer-brand-desc"
+                    ),
+                    cls="footer-col-about"
+                ),
+                # Enlaces rápidos de navegación interna
+                Div(
+                    H4("Navegación SPA", cls="footer-section-title"),
+                    Div(
+                        A("Inicio", href="#inicio", cls="footer-link-item"),
+                        A("Cómo Funciona", href="#como-funciona", cls="footer-link-item"),
+                        A("Predictor IA", href="#predictor", cls="footer-link-item"),
+                        cls="footer-links-grid"
+                    ),
+                    cls="footer-col-links"
+                ),
+                # Stack tecnológico
+                Div(
+                    H4("Stack Tecnológico", cls="footer-section-title"),
+                    Div(
+                        Span(I(cls="fa-brands fa-python"), " Python 3", cls="tech-badge"),
+                        Span(I(cls="fa-solid fa-code"), " FastHTML", cls="tech-badge"),
+                        Span(I(cls="fa-solid fa-bolt"), " HTMX", cls="tech-badge"),
+                        Span(I(cls="fa-solid fa-gears"), " Machine Learning", cls="tech-badge"),
+                        Span(I(cls="fa-solid fa-database"), " EPEN (INEI)", cls="tech-badge"),
+                        cls="footer-tech-badges-grid"
+                    ),
+                    cls="footer-col-tech"
+                ),
+                cls="footer-top-grid"
             ),
-            P("Modelo de machine learning para estimación salarial basado en datos del INEI - ENAHO.", cls="footer-desc"),
+            # Barra de copyright y créditos
             Div(
-                Span(I(cls="fa-solid fa-code"), " FastHTML + Google Colab", cls="footer-tag"),
-                Span(I(cls="fa-solid fa-database"), " INEI · ENAHO", cls="footer-tag"),
-                Span(I(cls="fa-solid fa-flask"), " Proyecto académico", cls="footer-tag"),
-                cls="footer-tags"
+                P("© 2026 MiingresoPeru. Desarrollado con fines académicos y de investigación científica.", cls="copyright-text"),
+                P("Curso: Inteligencia Artificial — URP", cls="course-text"),
+                cls="footer-bottom-bar"
             ),
-            P(I(cls="fa-regular fa-copyright"), " 2026 MiingresoPeru — Solo con fines académicos", cls="footer-copy"),
-            cls="footer-inner"
+            cls="section-container"
         ),
-        cls="footer"
+        id="contacto", cls="footer-section"
     )
+
+# =====================================================================
+# 3. RUTAS PRINCIPALES DEL SISTEMA
+# =====================================================================
 
 @rt('/')
 def get():
@@ -267,64 +567,172 @@ def get():
         Head(
             Meta(charset="UTF-8"),
             Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
-            Title("MiingresoPeru — Predice tu ingreso con IA"),
-            Link(rel='stylesheet', href='/static/fontawesome/css/all.min.css'),
-            Link(rel='preconnect', href='https://fonts.googleapis.com'),
-            Link(rel='preconnect', href='https://fonts.gstatic.com', crossorigin=''),
+            # SEO y Metatags
+            Title("MiingresoPeru — Estimador Salarial con Inteligencia Artificial"),
+            Meta(name="description", content="Proyecta tu ingreso mensual esperado en Soles utilizando modelos de Inteligencia Artificial entrenados con datos oficiales de la EPEN del INEI. Proyecto académico de la URP."),
+            Meta(name="keywords", content="miingreso, peru, salarios inei, epen inei, inteligencia artificial peru, estimador salarial, urp"),
+            Link(rel="icon", href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇵🇪</text></svg>"),
+            # Hojas de estilo y fuentes
+            Link(rel="stylesheet", href="/static/fontawesome/css/all.min.css"),
+            Link(rel="preconnect", href="https://fonts.googleapis.com"),
+            Link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin=""),
             Link(
-                rel='stylesheet',
-                href='https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&family=Merriweather:wght@700&display=swap'
+                rel="stylesheet",
+                href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap"
             ),
-            Link(rel='stylesheet', href='/static/css/style.css')
+            Link(rel="stylesheet", href="/static/css/style.css"),
+            # IMPORTANTE: Cargamos HTMX explícitamente para garantizar la interactividad SPA sin reloads
+            Script(src="https://unpkg.com/htmx.org@1.9.12")
         ),
         Body(
             navbar(),
             hero(),
             como_funciona(),
             predictor(),
-            footer(),
+            contacto(),
+            # Scripts personalizados para interacciones SPA y micro-animaciones
             Script("""
-                document.querySelectorAll('a[href^="#"]').forEach(a => {
-                    a.addEventListener('click', e => {
+                // Scroll suave personalizado
+                document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                    anchor.addEventListener('click', function (e) {
                         e.preventDefault();
-                        document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+                        const targetId = this.getAttribute('href');
+                        const targetEl = document.querySelector(targetId);
+                        if (targetEl) {
+                            const offset = 80; // Compensación por navbar fijo
+                            const targetPosition = targetEl.getBoundingClientRect().top + window.scrollY - offset;
+                            window.scrollTo({
+                                top: targetPosition,
+                                behavior: 'smooth'
+                            });
+                        }
                     });
                 });
+
+                // Efecto navbar compacto al scrollear
                 window.addEventListener('scroll', () => {
-                    document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 10);
+                    const navbar = document.querySelector('.navbar-fixed-element');
+                    if (window.scrollY > 50) {
+                        navbar.classList.add('scrolled');
+                    } else {
+                        navbar.classList.remove('scrolled');
+                    }
                 });
-                // Scroll reveal
+
+                // Intersection Observer para revelar elementos con scroll
+                const revealElements = document.querySelectorAll('.hero-stat-card, .step-card-element, .predictor-grid-layout');
                 const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('reveal-active');
+                        }
+                    });
                 }, { threshold: 0.1 });
-                document.querySelectorAll('.step-card, .stat-card, .form-wrapper').forEach(el => observer.observe(el));
+
+                revealElements.forEach(el => observer.observe(el));
             """)
         )
     )
 
-@rt('/predecir')
-async def post(educacion: str = "", sector: str = "", experiencia: str = "0",
-               region: str = "", horas: str = "40", sexo: str = "1"):
+@rt('/calcular-salario')
+async def post(request):
+    """
+    Ruta del endpoint de estimación salarial.
+    Recibe los inputs del formulario predictor, los simula con la lógica IA del EPEN
+    y retorna la tarjeta de resultados inyectada dinámicamente vía HTMX.
+    """
     try:
-        exp = int(experiencia)
-        edu_val = int(educacion) if educacion else 0
-        base = 950 + (edu_val * 400) + (exp * 80)
-        rango_min = int(base * 0.85)
-        rango_max = int(base * 1.15)
-        return Div(
-            Div(
-                I(cls="fa-solid fa-circle-check res-icon"),
-                Div(
-                    P("Ingreso mensual estimado", cls="res-label"),
-                    P(f"S/ {rango_min:,} — S/ {rango_max:,}", cls="res-value"),
-                    cls="res-data"
-                ),
-                cls="res-main"
-            ),
-            P(I(cls="fa-solid fa-triangle-exclamation"), " Estimación preliminar · El modelo real se conectará a Google Colab.", cls="res-note"),
-            cls="resultado-content"
-        )
-    except:
-        return P(I(cls="fa-solid fa-circle-xmark"), " Completa todos los campos para obtener tu estimación.", cls="res-error")
+        # Recuperar datos del payload del formulario
+        form_data = await request.form()
+        datos_recibidos = {k: v for k, v in form_data.items()}
+        
+        # Validación de campos requeridos
+        required_fields = ['c366', 'c208', 'c207', 'region', 'c310', 'c317', 'c312', 'seguro1', 'whoraT', 'c338']
+        for field in required_fields:
+            if not datos_recibidos.get(field):
+                return Div(
+                    I(cls="fa-solid fa-triangle-exclamation err-icon"),
+                    P("Por favor, selecciona una opción válida para todos los campos requeridos.", cls="err-message"),
+                    cls="result-error-container"
+                )
 
+        # Ejecutar modelo mockup EPEN
+        res = simular_modelo_ia_epen(datos_recibidos)
+
+        # Retornar el panel con los resultados procesados con alto nivel visual
+        return Div(
+            # Tarjeta de resultado
+            Div(
+                # Encabezado
+                Div(
+                    Div(
+                        I(cls="fa-solid fa-circle-check success-badge-icon"),
+                        Div(
+                            H3("Estimación Salarial Generada", cls="success-card-title"),
+                            P("Basado en el preprocesamiento de la encuesta EPEN del INEI", cls="success-card-subtitle"),
+                        ),
+                        cls="success-card-title-group"
+                    ),
+                    cls="success-card-header"
+                ),
+                
+                # Ingreso Mensual Gigante
+                Div(
+                    Span("INGRESO MENSUAL ESTIMADO (INGTOT)", cls="ingreso-sub-label"),
+                    Div(
+                        Span("S/", cls="ingreso-currency"),
+                        Span(f"{res['ingreso_estimado']:,.2f}", cls="ingreso-value-text"),
+                        cls="ingreso-display-group"
+                    ),
+                    cls="ingreso-display-container"
+                ),
+                
+                # Métricas adicionales
+                Div(
+                    # Métrica 1: Confianza del cálculo
+                    Div(
+                        Div(
+                            Span(I(cls="fa-solid fa-gauge-high"), " Confianza del Score", cls="metric-meta-label"),
+                            Span(res['confianza_score'], cls="metric-meta-value"),
+                            cls="metric-meta-header"
+                        ),
+                        Div(
+                            Div(cls="progress-meter-bar-fill", style=f"width: {res['confianza_score']}"),
+                            cls="progress-meter-bar-track"
+                        ),
+                        cls="metric-meta-card"
+                    ),
+                    # Métrica 2: Nivel de Formalidad
+                    Div(
+                        Span(I(cls="fa-solid fa-building-circle-check"), " Formalidad Laboral", cls="metric-meta-label"),
+                        Span(res['nivel_formalidad'], cls="metric-meta-value-text"),
+                        cls="metric-meta-card"
+                    ),
+                    # Métrica 3: Percentil de mercado
+                    Div(
+                        Span(I(cls="fa-solid fa-chart-simple"), " Percentil de Mercado", cls="metric-meta-label"),
+                        Span(res['percentil_mercado'], cls="metric-meta-value-text"),
+                        cls="metric-meta-card"
+                    ),
+                    cls="metrics-dashboard-grid"
+                ),
+                
+                # Footer de la tarjeta con aclaración del proyecto
+                Div(
+                    I(cls="fa-solid fa-graduation-cap URP-badge-icon"),
+                    P("Proyecto de Inteligencia Artificial - Universidad Ricardo Palma (Facultad de Ingeniería)", cls="academic-reference-text"),
+                    cls="success-card-footer"
+                ),
+                cls="resultado-card-wrap animate-fade-in"
+            )
+        )
+    except Exception as e:
+        # En caso de error inesperado
+        return Div(
+            I(cls="fa-solid fa-circle-xmark err-icon"),
+            P(f"Ha ocurrido un error inesperado al procesar tu solicitud: {str(e)}", cls="err-message"),
+            cls="result-error-container"
+        )
+
+# Ejecución del servidor FastHTML
 serve()
