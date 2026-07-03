@@ -1591,9 +1591,9 @@ a {
 
 .footer-top-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr 1fr;
-  gap: 4rem;
-  padding-bottom: 3.5rem;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 3rem;
+  padding-bottom: 2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -1737,10 +1737,6 @@ a {
   .footer-top-grid {
     grid-template-columns: 1.2fr 0.8fr;
     gap: 3rem;
-  }
-
-  .footer-col-tech {
-    grid-column: span 2;
   }
 
   .hero-section-fullwidth,
@@ -1919,8 +1915,8 @@ a {
   .hero-section-fullwidth {
     position: relative !important;
     width: 100% !important;
-    height: 460px !important; /* Estirado más abajo para visual premium */
-    min-height: 460px !important;
+    height: 480px !important;
+    min-height: 480px !important;
     overflow: hidden !important;
     display: block !important;
   }
@@ -1947,6 +1943,7 @@ a {
 
   .slide-img {
     object-fit: cover !important;
+    object-position: center 30% !important;
     width: 100% !important;
     height: 100% !important;
     display: block !important;
@@ -1978,7 +1975,7 @@ a {
     flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
-    padding: 40px 20px 60px 20px !important; /* Incrementado a 60px en la base para evitar solapamientos con los dots */
+    padding: 30px 20px 45px 20px !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
@@ -1998,7 +1995,7 @@ a {
     -webkit-text-fill-color: #ffffff !important;
   }
 
-  .hero-overlay-desc {
+.hero-overlay-desc {
     font-size: 0.85rem !important;
     color: #ffffff !important;
     text-align: center !important;
@@ -2007,121 +2004,67 @@ a {
     line-height: 1.4 !important;
   }
 
-  /* Ocultar flechas de navegación del slider y reposicionar puntos */
-  .slider-btn {
-    display: none !important;
-  }
-
-  .slider-dots {
-    bottom: 15px !important;
-    z-index: 10 !important;
-  }
-
-  /* ── 3. BLOQUE DE ACCIÓN INFERIOR (Fondo Oscuro Sólido) ── */
-  .hero-action-block-mobile {
-    background: #0f172a !important; /* Azul oscuro institucional */
-    padding: 30px 20px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 20px !important;
-    box-sizing: border-box !important;
-    width: 100% !important;
-  }
-
-  .hero-buttons-wrapper-mobile {
-    display: flex !important;
-    flex-direction: row !important; /* Horizontal 2 columnas */
-    justify-content: space-between !important;
-    gap: 12px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Calcular Salario (rojo institucional) */
-  .hero-buttons-wrapper-mobile .btn-cta-primary {
-    flex: 1 !important; /* Ancho equilibrado */
-    display: inline-flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    padding: 10px 14px !important; /* Padding compacto */
-    background: var(--rojo) !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: var(--radius-md) !important;
-    font-family: var(--font-display) !important;
-    font-size: 0.9rem !important; /* Fuente reducida */
-    font-weight: 700 !important;
-    transition: var(--transition) !important;
-    box-sizing: border-box !important;
-    cursor: pointer !important;
-    text-decoration: none !important;
-    gap: 6px !important;
-    white-space: nowrap !important;
-  }
-
-  .hero-buttons-wrapper-mobile .btn-cta-primary i {
-    font-size: 0.85rem !important; /* Icono reducido */
-  }
-
-  .hero-buttons-wrapper-mobile .btn-cta-primary:hover {
-    background: var(--rojo-dark) !important;
-  }
-
-  /* Ver Metodología (borde delineado) */
-  .hero-buttons-wrapper-mobile .btn-cta-ghost {
-    flex: 1 !important; /* Ancho equilibrado */
-    display: inline-flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    padding: 10px 14px !important; /* Padding compacto */
-    background: transparent !important;
-    color: #ffffff !important;
-    border: 2px solid rgba(255, 255, 255, 0.4) !important;
-    border-radius: var(--radius-md) !important;
-    font-family: var(--font-display) !important;
-    font-size: 0.9rem !important; /* Fuente reducida */
-    font-weight: 700 !important;
-    transition: var(--transition) !important;
-    box-sizing: border-box !important;
-    cursor: pointer !important;
-    text-decoration: none !important;
-    gap: 6px !important;
-    white-space: nowrap !important;
-  }
-
-  .hero-buttons-wrapper-mobile .btn-cta-ghost i {
-    font-size: 0.85rem !important; /* Icono reducido */
-  }
-
-  .hero-buttons-wrapper-mobile .btn-cta-ghost:hover {
-    border-color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-  }
-
-  /* Píldoras de validación horizontal/vertical en la base */
-  .hero-badges-container-mobile {
+  .hero-content-overlay .hero-buttons-wrapper.desktop-only {
     display: flex !important;
     flex-direction: row !important;
     justify-content: center !important;
     flex-wrap: wrap !important;
     gap: 10px !important;
     width: 100% !important;
-    margin-top: 2px !important; /* Margen superior reducido */
+    margin: 14px 0 0 0 !important;
   }
 
-  .hero-badge-item-mobile {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    font-family: var(--font-display) !important;
-    font-size: 0.75rem !important; /* Reducido */
-    font-weight: 600 !important;
-    color: rgba(255, 255, 255, 0.8) !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    padding: 5px 12px !important; /* Padding más compacto */
-    border-radius: 20px !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  .hero-content-overlay .btn-cta-primary,
+  .hero-content-overlay .btn-cta-ghost {
+    flex: 1 1 auto !important;
+    justify-content: center !important;
+    padding: 10px 16px !important;
+    font-size: 0.85rem !important;
+    white-space: nowrap !important;
+  }
+
+  .hero-content-overlay .hero-badges-container.desktop-only {
+    display: none !important;
+  }
+
+  /* Ocultar flechas de navegación del slider y reposicionar puntos */
+  .slider-btn {
+    display: none !important;
+  }
+
+.slider-dots {
+    bottom: 15px !important;
+    z-index: 10 !important;
+  }
+
+  .hero-action-block-mobile.mobile-only {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 6 !important;
+    padding: 16px 20px 20px !important;
+    background: linear-gradient(180deg, rgba(15,23,42,0) 0%, rgba(15,23,42,0.85) 40%, rgba(15,23,42,0.95) 100%) !important;
+    box-sizing: border-box !important;
+  }
+
+  .hero-buttons-wrapper-mobile {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .hero-buttons-wrapper-mobile .btn-cta-primary,
+  .hero-buttons-wrapper-mobile .btn-cta-ghost {
+    flex: 1 1 auto !important;
+    justify-content: center !important;
+    padding: 10px 14px !important;
+    font-size: 0.85rem !important;
+    white-space: nowrap !important;
   }
 
   /* ── 4. UTILITIES Y OTROS AJUSTES DE DESBORDES ── */
