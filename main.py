@@ -1,103 +1,10 @@
 from fasthtml.common import *
 from dotenv import load_dotenv
 import os
-import json
-import xgboost as xgb
-import pandas as pd
+from predictor import predecir_ingreso_real
 
 load_dotenv()
 app, rt = fast_app(pico=False, secret_key=os.environ.get("SESSION_SECRET", "mi_secreto_seguro_urp_2026"))
-
-# Carga del modelo real
-modelo = xgb.XGBRegressor()
-modelo.load_model("models/modelo_ingresos.json")
-
-with open("models/columnas_modelo.json") as f:
-    columnas_modelo = json.load(f)
-
-# Valores por defecto para las 16 variables ocultas (no visibles en el form)
-defaults_ocultos = {
-    "REGION": 1, "ESTRATO": 5, "C205": 2, "C311": 5, "C359": 1,
-    "C361_1": 1, "C361_5": 2, "C364_1": 2,
-    "C375_1": 2, "C375_2": 2, "C375_3": 2, "C375_4": 2, "C375_5": 2, "C375_6": 2,
-    "C376": 10, "C377": 7,
-}
-
-def predecir_ingreso_real(datos_recibidos: dict) -> dict:
-   # Predicción real usando el modelo XGBoost entrenado con datos EPEN.
-    # 1. Parsear inputs del formulario (mismos nombres que ya usa el HTML)
-    try:
-        c366 = int(datos_recibidos.get('c366', 6))
-        c208 = int(datos_recibidos.get('c208', 30))
-        c207 = int(datos_recibidos.get('c207', 1))
-        region = int(datos_recibidos.get('region', 1))
-        c310 = int(datos_recibidos.get('c310', 3))
-        c317 = int(datos_recibidos.get('c317', 1))
-        c312 = int(datos_recibidos.get('c312', 1))
-        seguro1 = int(datos_recibidos.get('seguro1', 5))
-        whoraT = int(datos_recibidos.get('whoraT', 40))
-        c338 = int(datos_recibidos.get('c338', 4))
-    except (ValueError, TypeError):
-        raise ValueError("Datos del formulario inválidos o incompletos")
-
-    # 2. Armar el vector de entrada con las 26 columnas exactas del modelo
-    formulario_modelo = {
-        "C366": c366,
-        "C208": c208,
-        "C207": c207,
-        "REGION": region,
-        "C310": c310,
-        "C317": c317,
-        "C312": c312,
-        "SEGURO1": seguro1,
-        "C318_T": whoraT,
-        "whoraT": whoraT,
-        "C338": c338,
-    }
-    entrada = {**defaults_ocultos, **formulario_modelo}
-    fila = pd.DataFrame([[entrada[col] for col in columnas_modelo]], columns=columnas_modelo)
-
-    # 3. Predicción real del modelo
-    ingreso_estimado = float(modelo.predict(fila)[0])
-    ingreso_estimado = round(max(ingreso_estimado, 0.0), 2)
-
-    # 4. Metadatos descriptivos (formalidad, percentil) calculados sobre la predicción real
-    formalidad_map = {
-        1: 'Formal (Empresa Registrada)',
-        2: 'Formal (Persona Natural con RUC)',
-        3: 'Informal (Sin RUC)',
-        4: 'Informal (No especificado / No sabe)'
-    }
-    nivel_formalidad = formalidad_map.get(c312, 'Formal (Empresa Registrada)')
-
-    if ingreso_estimado < 1400.0:
-        percentil_mercado = 'Percentil 30 (Ingreso Básico)'
-        percentil_numero = 30
-    elif ingreso_estimado < 2800.0:
-        percentil_mercado = 'Percentil 55 (Ingreso Promedio)'
-        percentil_numero = 55
-    elif ingreso_estimado < 5000.0:
-        percentil_mercado = 'Top 25% superior'
-        percentil_numero = 75
-    else:
-        percentil_mercado = 'Top 10% de altos ingresos'
-        percentil_numero = 90
-
-    # Nota: reemplazamos el "confianza_score" simulado por la precisión real del modelo
-    # medida en el conjunto de prueba durante el entrenamiento (ajusta este valor si lo
-    # recalculaste en el notebook, ej. R² o 1 - MAPE)
-    confianza_val = 87.4
-    confianza_score = f"{confianza_val}%"
-
-    return {
-        'ingreso_estimado': ingreso_estimado,
-        'confianza_score': confianza_score,
-        'confianza_numero': confianza_val,
-        'nivel_formalidad': nivel_formalidad,
-        'es_formal': c312 in (1, 2),
-        'percentil_mercado': percentil_mercado,
-        'percentil_numero': percentil_numero
-    }
 
 def navbar(is_transparent=True):
     navbar_cls = "navbar-fixed-element" if is_transparent else "navbar-fixed-element scrolled"
@@ -120,7 +27,7 @@ def navbar(is_transparent=True):
                     Img(src="/static/imagenes/etiqueta.png", alt="Aval Académico", cls="navbar-badge-img"),
                     Div(
                         Div(
-                            Span("MI", cls="brand-accent"),
+                            Span("Mi", cls="brand-accent"),
                             Span("ingreso", cls="brand-main"),
                             Span("Peru", cls="brand-country"),
                             cls="brand-logo-text"
@@ -210,11 +117,6 @@ def hero():
                         A(I(cls="fa-solid fa-circle-question"), "Ver Metodología", href="#como-funciona", cls="btn-cta-ghost"),
                         cls="hero-buttons-wrapper desktop-only"
                     ),
-                    Div(
-                        Span(I(cls="fa-solid fa-circle-check"), "Datos de EPEN INEI", cls="hero-badge-item"),
-                        Span(I(cls="fa-solid fa-university"), "Investigación URP", cls="hero-badge-item"),
-                        cls="hero-badges-container desktop-only"
-                    ),
                     cls="hero-content-overlay"
                 ),
                 cls="section-container hero-content-wrapper"
@@ -226,11 +128,6 @@ def hero():
                 A(I(cls="fa-solid fa-calculator"), "Calcular Salario", href="#predictor", cls="btn-cta-primary"),
                 A(I(cls="fa-solid fa-circle-question"), "Ver Metodología", href="#como-funciona", cls="btn-cta-ghost"),
                 cls="hero-buttons-wrapper-mobile"
-            ),
-            Div(
-                Span(I(cls="fa-solid fa-circle-check"), "Datos de EPEN INEI", cls="hero-badge-item-mobile"),
-                Span(I(cls="fa-solid fa-university"), "Investigación URP", cls="hero-badge-item-mobile"),
-                cls="hero-badges-container-mobile"
             ),
             cls="hero-action-block-mobile mobile-only"
         ),
@@ -248,7 +145,7 @@ def hero():
                 I(cls="fa-solid fa-database card-stat-icon"),
                 Div(
                     Span("Registros EPEN", cls="card-stat-title"),
-                    Span("120K+ Muestras", cls="card-stat-value"),
+                    Span("Datasets INEI", cls="card-stat-value"),
                     cls="card-stat-texts"
                 ),
                 cls="hero-stat-card reveal-on-scroll"
@@ -257,7 +154,7 @@ def hero():
                 I(cls="fa-solid fa-brain card-stat-icon"),
                 Div(
                     Span("Algoritmo Predictor", cls="card-stat-title"),
-                    Span("Gradient Boosting", cls="card-stat-value"),
+                    Span("XGBoost", cls="card-stat-value"),
                     cls="card-stat-texts"
                 ),
                 cls="hero-stat-card reveal-on-scroll"
@@ -335,8 +232,8 @@ def sobre_proyecto():
                             cls="about-bullets"
                         ),
                         A(
-                            I(cls="fa-solid fa-external-link-alt"), " Visitar INEI Oficial",
-                            href="https://www.inei.gob.pe", target="_blank", cls="btn-link-externo"
+                            I(cls="fa-solid fa-external-link-alt"), " Visitar Fuente de Datasets",
+                            href="https://www.datosabiertos.gob.pe/search/field_topic/economía-y-finanzas-29?query=Encuesta+Permanente+de+Empleo+Nacional+%28EPEN%29+2025&sort_by=changed&sort_order=DESC", target="_blank", cls="btn-link-externo"
                         ),
                         cls="about-technical-column reveal-on-scroll"
                     ),
@@ -373,17 +270,6 @@ def sobre_proyecto():
                     cls="about-authors-block reveal-on-scroll"
                 ),
                 
-                Div(
-                    I(cls="fa-solid fa-scale-balanced disclaimer-icon"),
-                    P(
-                        "Nota académica final: Esta plataforma y su algoritmo de predicción salarial han sido "
-                        "diseñados exclusivamente con fines didácticos, de investigación universitaria y demostración de interfaz de usuario. "
-                        "Las proyecciones salariales mostradas son simuladas y no representan compromisos laborales ni estadísticas oficiales vinculantes.",
-                        cls="disclaimer-text"
-                    ),
-                    cls="disclaimer-box reveal-on-scroll"
-                ),
-                
                 cls="section-inner-wrapper"
             ),
             cls="section-container"
@@ -399,7 +285,7 @@ def predictor():
                 H2("Calculadora de Ingreso Estimado", cls="section-main-heading"),
                 Div(
                     I(cls="fa-solid fa-triangle-exclamation warning-icon"),
-                    P("El modelo actual utiliza datos del preprocesamiento EPEN del INEI. Las estimaciones son simuladas con fines académicos y de desarrollo de la interfaz de usuario.", cls="warning-text"),
+                    P("Este predictor utiliza un modelo de Machine Learning (XGBoost) entrenado con datos reales del preprocesamiento EPEN del INEI. Las estimaciones son proyecciones estadísticas con fines académicos y no representan una garantía de ingreso real.", cls="warning-text"),
                     cls="warning-banner-container"
                 ),
                 
@@ -408,7 +294,7 @@ def predictor():
                         Form(
                             Div(
                                 Div(
-                                    Label(I(cls="fa-solid fa-graduation-cap label-icon"), " Nivel Educativo (c366)", For="c366"),
+                                    Label(I(cls="fa-solid fa-graduation-cap label-icon"), " Nivel Educativo", For="c366"),
                                     Select(
                                         Option("Selecciona...", value="", disabled=True, selected=True),
                                         Option("Sin nivel", value="1"),
@@ -428,12 +314,12 @@ def predictor():
                                     cls="form-group-field"
                                 ),
                                 Div(
-                                    Label(I(cls="fa-solid fa-cake-candles label-icon"), " ¿Cuántos años tienes? (c208)", For="c208"),
+                                    Label(I(cls="fa-solid fa-cake-candles label-icon"), " ¿Cuántos años tienes?", For="c208"),
                                     Input(type="number", id="c208", name="c208", placeholder="Ej: 25", min="14", max="100", required=True),
                                     cls="form-group-field"
                                 ),
                                 Div(
-                                    Label(I(cls="fa-solid fa-venus-mars label-icon"), " Sexo (c207)", For="c207"),
+                                    Label(I(cls="fa-solid fa-venus-mars label-icon"), " Sexo", For="c207"),
                                     Select(
                                         Option("Selecciona...", value="", disabled=True, selected=True),
                                         Option("Hombre", value="1"),
@@ -443,7 +329,7 @@ def predictor():
                                     cls="form-group-field"
                                 ),
                                 Div(
-                                    Label(I(cls="fa-solid fa-earth-americas label-icon"), " ¿En qué región buscas trabajo? (region)", For="region"),
+                                    Label(I(cls="fa-solid fa-earth-americas label-icon"), " ¿En qué región buscas trabajo?", For="region"),
                                     Select(
                                         Option("Selecciona...", value="", disabled=True, selected=True),
                                         Option("Lima Metropolitana", value="1"),
@@ -454,7 +340,7 @@ def predictor():
                                     cls="form-group-field"
                                 ),
                                 Div(
-                                    Label(I(cls="fa-solid fa-network-wired label-icon"), " Tipo de trabajo al que aspiras (c310)", For="c310"),
+                                    Label(I(cls="fa-solid fa-network-wired label-icon"), " Tipo de trabajo al que aspiras", For="c310"),
                                     Select(
                                         Option("Selecciona...", value="", disabled=True, selected=True),
                                         Option("Empleador o patrono", value="1"),
@@ -467,7 +353,7 @@ def predictor():
                                     cls="form-group-field"
                                 ),
                                 Div(
-                                    Label(I(cls="fa-solid fa-users label-icon"), " Tamaño de empresa esperado (c317)", For="c317"),
+                                    Label(I(cls="fa-solid fa-users label-icon"), " Tamaño de empresa esperado", For="c317"),
                                     Select(
                                         Option("Selecciona...", value="", disabled=True, selected=True),
                                         Option("Hasta 20 personas", value="1"),
@@ -480,7 +366,7 @@ def predictor():
                                     cls="form-group-field"
                                 ),
                                 Div(
-                                    Label(I(cls="fa-solid fa-building-shield label-icon"), " ¿Buscas negocio/empleo formal? (c312)", For="c312"),
+                                    Label(I(cls="fa-solid fa-building-shield label-icon"), " ¿Buscas negocio/empleo formal?", For="c312"),
                                     Select(
                                         Option("Selecciona...", value="", disabled=True, selected=True),
                                         Option("Sí, formal (Persona jurídica)", value="1"),
@@ -492,7 +378,7 @@ def predictor():
                                     cls="form-group-field"
                                 ),
                                 Div(
-                                    Label(I(cls="fa-solid fa-hand-holding-heart label-icon"), " Seguro de salud esperado (seguro1)", For="seguro1"),
+                                    Label(I(cls="fa-solid fa-hand-holding-heart label-icon"), " Seguro de salud esperado", For="seguro1"),
                                     Select(
                                         Option("Selecciona...", value="", disabled=True, selected=True),
                                         Option("EsSalud", value="1"),
@@ -506,12 +392,12 @@ def predictor():
                                     cls="form-group-field"
                                 ),
                                 Div(
-                                    Label(I(cls="fa-solid fa-hourglass-half label-icon"), " ¿Horas semanales planeadas? (whoraT)", For="whoraT"),
+                                    Label(I(cls="fa-solid fa-hourglass-half label-icon"), " ¿Horas semanales planeadas?", For="whoraT"),
                                     Input(type="number", id="whoraT", name="whoraT", placeholder="Ej: 48", min="1", max="120", required=True),
                                     cls="form-group-field"
                                 ),
                                 Div(
-                                    Label(I(cls="fa-solid fa-money-check-dollar label-icon"), " Frecuencia de pago esperada (c338)", For="c338"),
+                                    Label(I(cls="fa-solid fa-money-check-dollar label-icon"), " Frecuencia de pago esperada", For="c338"),
                                     Select(
                                         Option("Selecciona...", value="", disabled=True, selected=True),
                                         Option("Diario", value="1"),
@@ -572,46 +458,37 @@ def contacto():
             Div(
                 Div(
                     Div(
-                        Span("MI", cls="footer-brand-accent"),
+                        Span("Mi", cls="footer-brand-accent"),
                         Span("ingreso", cls="footer-brand-main"),
                         Span("Peru", cls="footer-brand-country"),
                         cls="footer-brand-title"
                     ),
                     P(
-                        "MiingresoPeru es un estimador interactivo de ingresos mensuales en soles"
-                        " desarrollado como proyecto de investigación por estudiantes de la Universidad Ricardo Palma, "
-                        "utilizando machine learning entrenado sobre el EPEN del INEI.",
+                        "MiingresoPeru es un estimador interactivo de ingresos mensuales en soles, "
+                        "desarrollado por estudiantes de la Universidad Ricardo Palma con fines académicos "
+                        "y de investigación. Los resultados son referenciales y no constituyen una oferta "
+                        "laboral ni un dato oficial.",
                         cls="footer-brand-desc"
                     ),
                     cls="footer-col-about"
                 ),
                 Div(
-                    H4("Navegación SPA", cls="footer-section-title"),
-                    Div(
-                        A("Inicio", href="#inicio", cls="footer-link-item"),
-                        A("Cómo Funciona", href="#como-funciona", cls="footer-link-item"),
-                        A("Predictor IA", href="#predictor", cls="footer-link-item"),
-                        cls="footer-links-grid"
+                    H4("Fuente de Datos", cls="footer-section-title"),
+                    P(
+                        "Las estimaciones se basan en datos de la Encuesta Permanente de Empleo "
+                        "Nacional (EPEN) del INEI.",
+                        cls="footer-brand-desc"
                     ),
-                    cls="footer-col-links"
-                ),
-                Div(
-                    H4("Stack Tecnológico", cls="footer-section-title"),
-                    Div(
-                        Span(I(cls="fa-brands fa-python"), " Python 3", cls="tech-badge"),
-                        Span(I(cls="fa-solid fa-code"), " FastHTML", cls="tech-badge"),
-                        Span(I(cls="fa-solid fa-bolt"), " HTMX", cls="tech-badge"),
-                        Span(I(cls="fa-solid fa-gears"), " Machine Learning", cls="tech-badge"),
-                        Span(I(cls="fa-solid fa-database"), " EPEN (INEI)", cls="tech-badge"),
-                        cls="footer-tech-badges-grid"
+                    A(
+                        I(cls="fa-solid fa-external-link-alt"), " Visitar Fuente de Datasets",
+                        href="https://www.datosabiertos.gob.pe/search/field_topic/economía-y-finanzas-29?query=Encuesta+Permanente+de+Empleo+Nacional+%28EPEN%29+2025&sort_by=changed&sort_order=DESC", target="_blank", cls="footer-link-item"
                     ),
                     cls="footer-col-tech"
                 ),
                 cls="footer-top-grid"
             ),
             Div(
-                P("© 2026 MiingresoPeru. Desarrollado con fines académicos y de investigación científica.", cls="copyright-text"),
-                P("Curso: Inteligencia Artificial — URP", cls="course-text"),
+                P("© 2026 MiingresoPeru — Universidad Ricardo Palma. Proyecto académico sin fines comerciales.", cls="copyright-text"),
                 cls="footer-bottom-bar"
             ),
             cls="section-container"
@@ -685,7 +562,7 @@ def get():
             Title("MiingresoPeru — Estimador Salarial con Inteligencia Artificial"),
             Meta(name="description", content="Proyecta tu ingreso mensual esperado en Soles utilizando modelos de Inteligencia Artificial entrenados con datos oficiales de la EPEN del INEI. Proyecto académico de la URP."),
             Meta(name="keywords", content="miingreso, peru, salarios inei, epen inei, inteligencia artificial peru, estimador salarial, urp"),
-            Link(rel="icon", href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇵🇪</text></svg>"),
+            Link(rel="icon", href="static/imagenes/logo.png"),
             Link(rel="stylesheet", href="/static/fontawesome/css/all.min.css"),
             Link(rel="preconnect", href="https://fonts.googleapis.com"),
             Link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin=""),
@@ -847,7 +724,7 @@ async def post(request):
                 ),
 
                 Div(
-                    Span("INGRESO MENSUAL ESTIMADO (INGTOT)", cls="ingreso-sub-label"),
+                    Span("INGRESO MENSUAL ESTIMADO", cls="ingreso-sub-label"),
                     Div(
                         Span("S/", cls="ingreso-currency"),
                         Span(f"{res['ingreso_estimado']:,.2f}", cls="ingreso-value-text"),
