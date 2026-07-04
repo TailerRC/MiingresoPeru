@@ -125,14 +125,6 @@ def hero():
         ),
         Div(
             Div(
-                A(I(cls="fa-solid fa-calculator"), "Calcular Salario", href="#predictor", cls="btn-cta-primary"),
-                A(I(cls="fa-solid fa-circle-question"), "Ver Metodología", href="#como-funciona", cls="btn-cta-ghost"),
-                cls="hero-buttons-wrapper-mobile"
-            ),
-            cls="hero-action-block-mobile mobile-only"
-        ),
-        Div(
-            Div(
                 I(cls="fa-solid fa-bullseye card-stat-icon"),
                 Div(
                     Span("Precisión del Modelo", cls="card-stat-title"),
