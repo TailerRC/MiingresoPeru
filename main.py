@@ -297,17 +297,12 @@ def predictor():
                                     Label(I(cls="fa-solid fa-graduation-cap label-icon"), " Nivel Educativo", For="c366"),
                                     Select(
                                         Option("Selecciona...", value="", disabled=True, selected=True),
-                                        Option("Sin nivel", value="1"),
-                                        Option("Educación Inicial", value="2"),
-                                        Option("Primaria incompleta", value="3"),
-                                        Option("Primaria completa", value="4"),
                                         Option("Secundaria incompleta", value="5"),
                                         Option("Secundaria completa", value="6"),
-                                        Option("Básica especial", value="7"),
-                                        Option("Sup. no univ. incompleta", value="8"),
-                                        Option("Sup. no univ. completa", value="9"),
-                                        Option("Sup. univ. incompleta", value="10"),
-                                        Option("Sup. univ. completa", value="11"),
+                                        Option("Sup. no universitaria incompleta", value="8"),
+                                        Option("Sup. no universitaria completa", value="9"),
+                                        Option("Sup. universitaria incompleta", value="10"),
+                                        Option("Sup. universitaria completa", value="11"),
                                         Option("Maestría/Doctorado", value="12"),
                                         id="c366", name="c366", required=True
                                     ),
@@ -315,7 +310,7 @@ def predictor():
                                 ),
                                 Div(
                                     Label(I(cls="fa-solid fa-cake-candles label-icon"), " ¿Cuántos años tienes?", For="c208"),
-                                    Input(type="number", id="c208", name="c208", placeholder="Ej: 25", min="14", max="100", required=True),
+                                    Input(type="number", id="c208", name="c208", placeholder="Ej: 25", min="18", max="100", required=True),
                                     cls="form-group-field"
                                 ),
                                 Div(
@@ -346,8 +341,6 @@ def predictor():
                                         Option("Empleador o patrono", value="1"),
                                         Option("Trabajador independiente", value="2"),
                                         Option("Empleado u obrero", value="3"),
-                                        Option("Trabajador del hogar", value="6"),
-                                        Option("Aprendiz/practicante remunerado", value="7"),
                                         id="c310", name="c310", required=True
                                     ),
                                     cls="form-group-field"
@@ -357,9 +350,6 @@ def predictor():
                                     Select(
                                         Option("Selecciona...", value="", disabled=True, selected=True),
                                         Option("Hasta 20 personas", value="1"),
-                                        Option("De 21 a 50 personas", value="2"),
-                                        Option("De 51 a 100 personas", value="3"),
-                                        Option("De 101 a 500 personas", value="4"),
                                         Option("Más de 500 personas", value="5"),
                                         id="c317", name="c317", required=True
                                     ),
@@ -372,7 +362,6 @@ def predictor():
                                         Option("Sí, formal (Persona jurídica)", value="1"),
                                         Option("Persona natural con RUC", value="2"),
                                         Option("Prefiero informal (Sin RUC)", value="3"),
-                                        Option("No sabe", value="4"),
                                         id="c312", name="c312", required=True
                                     ),
                                     cls="form-group-field"
@@ -382,27 +371,22 @@ def predictor():
                                     Select(
                                         Option("Selecciona...", value="", disabled=True, selected=True),
                                         Option("EsSalud", value="1"),
-                                        Option("Seguro privado", value="2"),
                                         Option("Ambos", value="3"),
-                                        Option("Otro", value="4"),
                                         Option("SIS", value="5"),
-                                        Option("No está afiliado", value="6"),
                                         id="seguro1", name="seguro1", required=True
                                     ),
                                     cls="form-group-field"
                                 ),
                                 Div(
                                     Label(I(cls="fa-solid fa-hourglass-half label-icon"), " ¿Horas semanales planeadas?", For="whoraT"),
-                                    Input(type="number", id="whoraT", name="whoraT", placeholder="Ej: 48", min="1", max="120", required=True),
+                                    Input(type="number", id="whoraT", name="whoraT", placeholder="Ej: 48", min="1", max="48", required=True),
                                     cls="form-group-field"
                                 ),
                                 Div(
                                     Label(I(cls="fa-solid fa-money-check-dollar label-icon"), " Frecuencia de pago esperada", For="c338"),
                                     Select(
                                         Option("Selecciona...", value="", disabled=True, selected=True),
-                                        Option("Diario", value="1"),
                                         Option("Semanal", value="2"),
-                                        Option("Quincenal", value="3"),
                                         Option("Mensual", value="4"),
                                         id="c338", name="c338", required=True
                                     ),
@@ -693,7 +677,20 @@ async def post(request):
                     P("Por favor, selecciona una opción válida para todos los campos requeridos.", cls="err-message"),
                     cls="result-error-container"
                 )
-
+        edad = int(datos_recibidos.get('c208', 0))
+        if edad < 18:
+            return Div(
+                I(cls="fa-solid fa-triangle-exclamation err-icon"),
+                P("La edad mínima para trabajar legalmente en Perú es 18 años.", cls="err-message"),
+                cls="result-error-container"
+            )
+        horas = int(datos_recibidos.get('whoraT', 0))
+        if horas < 1 or horas > 48:
+            return Div(
+                I(cls="fa-solid fa-triangle-exclamation err-icon"),
+                P("Las horas semanales deben estar entre 1 y 48 (límite legal en Perú).", cls="err-message"),
+                cls="result-error-container"
+            )
         res = predecir_ingreso_real(datos_recibidos)
         badge_cls = "formalidad-badge badge-formal" if res['es_formal'] else "formalidad-badge badge-informal"
         badge_icon = "fa-solid fa-circle-check" if res['es_formal'] else "fa-solid fa-circle-xmark"
